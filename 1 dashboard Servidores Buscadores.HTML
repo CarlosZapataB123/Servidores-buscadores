@@ -1,0 +1,746 @@
+```html
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Plan de Trabajo Servidores/as Buscadores/as</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-bg: #f4f7fa;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --header-color: #2c3e50;
+            --accent-color-1: #3498db;
+            --accent-color-2: #e74c3c;
+            --accent-color-3: #2ecc71;
+            --accent-color-4: #f39c12;
+            --shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+            background-color: var(--primary-bg);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            color: var(--header-color);
+            font-size: 2.5em;
+            margin-bottom: 5px;
+        }
+
+        header p {
+            font-size: 1.2em;
+            color: #7f8c8d;
+        }
+
+        .kpi-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .kpi-card {
+            background-color: var(--card-bg);
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .kpi-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .kpi-card .icon {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+        }
+        
+        .kpi-card .icon.icon-1 { color: var(--accent-color-1); }
+        .kpi-card .icon.icon-2 { color: var(--accent-color-2); }
+        .kpi-card .icon.icon-3 { color: var(--accent-color-3); }
+        .kpi-card .icon.icon-4 { color: var(--accent-color-4); }
+
+        .kpi-card h3 {
+            margin: 0;
+            font-size: 1em;
+            color: #7f8c8d;
+            text-transform: uppercase;
+        }
+
+        .kpi-card .value {
+            font-size: 2.8em;
+            font-weight: bold;
+            color: var(--header-color);
+            margin-top: 5px;
+        }
+
+        .charts-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .chart-card {
+            background-color: var(--card-bg);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+        }
+
+        .chart-card.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .chart-card h3 {
+            text-align: center;
+            margin-top: 0;
+            color: var(--header-color);
+        }
+
+        .table-container {
+            background-color: var(--card-bg);
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+        }
+
+        .table-container h2 {
+            color: var(--header-color);
+            margin-top: 0;
+            border-bottom: 2px solid var(--accent-color-2);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        #searchInput {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+            font-size: 1em;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #ecf0f1;
+            color: var(--header-color);
+            font-weight: bold;
+        }
+
+        tbody tr:hover {
+            background-color: #f9f9f9;
+        }
+        
+        .btn-details {
+            background-color: var(--accent-color-1);
+            color: white;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .btn-details:hover {
+            background-color: #2980b9;
+        }
+        
+        .highlight-parentesco {
+            font-weight: bold;
+            color: var(--accent-color-2);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1000; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background-color: rgba(0,0,0,0.6);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 30px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 900px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            position: relative;
+        }
+
+        .close-btn {
+            color: #aaa;
+            position: absolute;
+            top: 15px;
+            right: 25px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close-btn:hover, .close-btn:focus {
+            color: black;
+        }
+
+        .modal-content h2 {
+            color: var(--header-color);
+            border-bottom: 2px solid var(--accent-color-1);
+            padding-bottom: 10px;
+        }
+        
+        .modal-section {
+            margin-bottom: 20px;
+        }
+        .modal-section h4 {
+            color: #555;
+            font-size: 1.1em;
+            margin-bottom: 8px;
+        }
+        .modal-section p, .modal-section ul {
+            background-color: var(--primary-bg);
+            padding: 15px;
+            border-radius: 5px;
+            margin: 0;
+            line-height: 1.6;
+        }
+        .modal-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 1200px) {
+            .charts-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            .kpi-container { grid-template-columns: 1fr; }
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Panel de Control: Plan de Trabajo Servidores/as Buscadores/as</h1>
+        <p>Análisis integral y seguimiento de los casos de búsqueda liderados y acompañados por servidores de la UBPD.</p>
+    </header>
+
+    <section class="kpi-container">
+        <div class="kpi-card">
+            <div class="icon icon-1"><i class="fas fa-folder-open"></i></div>
+            <h3>Total de Casos</h3>
+            <div class="value" id="kpi-total-casos">35</div>
+        </div>
+        <div class="kpi-card">
+            <div class="icon icon-2"><i class="fas fa-users"></i></div>
+            <h3>Servidores/as Buscadores/as</h3>
+            <div class="value" id="kpi-total-servidores">26</div>
+        </div>
+        <div class="kpi-card">
+            <div class="icon icon-3"><i class="fas fa-vial"></i></div>
+            <h3>Tomas de Muestra</h3>
+            <div class="value" id="kpi-tomas-muestra">31</div>
+        </div>
+        <div class="kpi-card">
+            <div class="icon icon-4"><i class="fas fa-search-location"></i></div>
+            <h3>Casos con Prospección</h3>
+            <div class="value" id="kpi-prospeccion">8</div>
+        </div>
+    </section>
+
+    <section class="charts-container">
+        <div class="chart-card full-width">
+            <h3>Embudo del Proceso de Búsqueda</h3>
+            <canvas id="funnelChart"></canvas>
+        </div>
+        <div class="chart-card">
+            <h3>Casos por Año de Desaparición</h3>
+            <canvas id="casosPorAnoChart"></canvas>
+        </div>
+        <div class="chart-card">
+            <h3>Casos por GITT Responsable</h3>
+            <canvas id="casosPorGittChart"></canvas>
+        </div>
+        <div class="chart-card">
+            <h3>Parentesco del Servidor/a Buscador/a</h3>
+            <canvas id="parentescoChart"></canvas>
+        </div>
+        <div class="chart-card">
+             <h3>Liderazgo de la Búsqueda</h3>
+            <canvas id="liderazgoChart"></canvas>
+        </div>
+    </section>
+
+    <section class="table-container">
+        <h2>Servidores/as Buscando Familiares Directos (Primer Grado)</h2>
+        <div style="overflow-x:auto;">
+            <table id="servidoresDirectosTable">
+                <thead>
+                    <tr>
+                        <th>Nombre del Servidor/a Buscador/a</th>
+                        <th>GITT al que Pertenece</th>
+                        <th>Parentesco</th>
+                        <th>Persona que Busca (PDD)</th>
+                    </tr>
+                </thead>
+                <tbody id="servidoresDirectosBody">
+                    <!-- Filas generadas por JS -->
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="table-container">
+        <h2>Detalle de Todos los Casos</h2>
+        <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="Buscar por nombre, año, GITT...">
+        <div style="overflow-x:auto;">
+            <table id="casosTable">
+                <thead>
+                    <tr>
+                        <th>N°</th>
+                        <th>Persona Desaparecida (PDD)</th>
+                        <th>Año</th>
+                        <th>GITT Responsable</th>
+                        <th>Servidor/a Buscador/a</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- Filas generadas por JS -->
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+</div>
+
+<!-- The Modal -->
+<div id="detailsModal" class="modal">
+  <div class="modal-content">
+    <span class="close-btn">&times;</span>
+    <h2 id="modalTitle">Detalle del Caso</h2>
+    <div class="modal-grid">
+        <div>
+            <div class="modal-section">
+                <h4><i class="fas fa-info-circle"></i> Información Básica</h4>
+                <p>
+                    <strong>ID:</strong> <span id="modalId"></span><br>
+                    <strong>Año Desaparición:</strong> <span id="modalAno"></span><br>
+                    <strong>Lugar:</strong> <span id="modalLugar"></span><br>
+                    <strong>GITT Responsable:</strong> <span id="modalGitt"></span>
+                </p>
+            </div>
+            <div class="modal-section">
+                <h4><i class="fas fa-user-friends"></i> Servidor/a Buscador/a</h4>
+                <p>
+                    <strong>Nombre:</strong> <span id="modalServidorNombre"></span><br>
+                    <strong>Parentesco:</strong> <span id="modalParentesco"></span><br>
+                    <strong>Lidera Búsqueda:</strong> <span id="modalLidera"></span>
+                </p>
+            </div>
+        </div>
+        <div>
+             <div class="modal-section">
+                <h4><i class="fas fa-sticky-note"></i> Nota / Observaciones</h4>
+                <p id="modalNota"></p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal-section">
+        <h4><i class="fas fa-tasks"></i> Seguimiento y Avances</h4>
+        <p id="modalSeguimiento"></p>
+    </div>
+    <div class="modal-section">
+        <h4><i class="fas fa-clipboard-list"></i> Plan de Trabajo y Responsable</h4>
+        <p>
+            <strong>Plan:</strong> <span id="modalPlan"></span><br>
+            <strong>Responsable:</strong> <span id="modalResponsable"></span><br>
+            <strong>Plazo:</strong> <span id="modalPlazo"></span>
+        </p>
+    </div>
+  </div>
+</div>
+
+<script>
+let data = [
+  {
+    "N°": 1, "PDD": "Jaime Mena", "ID": 4109, "Año": 1991, "Lugar Desaparición": "El Castillo Meta", "PRB": "Meta", "GITT RESPONSABLE": "Meta", "Investigador/a": "Maria Alejandra Tapasco Valbuena", "Solicitud de búsqueda": 1, "Dialogo inicial": 1, "Toma de Muestra": 1, "Localicación": 1, "Prospección": null, "Identificación": "Se cuenta con informe de identificacion por Lofoscopia, pero no hay localización del cuerpo.", "SIRDEC": "x", "# SIRDEC": "2020D004742", "EXPEDIENTE": "Si", "Carpeta": "4109 JAIME MENA", "Nota": "Mesa técnica e institucional (fiscalía GRUBE 209 e INMLCF Meta). Cuerpo identificado a traves de cotejo decadactilar, inhumado en el Cementerio de Villavicencio y sin localización an interior del mismo. ", "NOMBRES SERVIDOR/A BUSCADOR/A": "Diana Paola Viveros Cangrejo ", "GITT AL QUE PERTENECE EL SERVIRDOR/A": "Villavicencio", "CARGO": "Coordinadora", "CONTACTO": "3107903712", "CORREO ELECTRÓNICO": "dviverosc@ubpdbusquedadesaparecidos.co", "PARENTESCO": "Ti@", "Primer Grado de Consanguinidad": "No", "LIDERA LA BÚSQUEDA": "No", "OBSERVACIONES": "La servidora es la investigadora a cargo. Se encuentra en el PRB Villavicencio y Pie de Monte.", "Seguimiento": "-C.C. :7792742\n-Registran como sitio de inspección técnica a cadáver el Batallón Serviez - Base Militar - Villavicencio – Meta. 31/08/1993. \n-Protocolo ingreso cadáver 1993010150001000290.\n-Identificado por cotejo dactiloscópico.\n-Inhumación estatal 01/09/1993. Al parecer en el cementerio de Villavicencio, intervenido por fiscal 209 G.\n-Desde el 15/03/2023 el IML solicitó a la fiscalía 209 GRUBE la ubicación del cadáver para verificación de identidad y entrega a familiares.\n-Respuesta fiscalía 209 GRUBE, no tiene dicha información. No existen inconsistencias, el caso fue ingresado por proyecto retrospectivo con apoyo de la UBPD.\n-Última información subida a Sirdec 25/01/2024 (RD) 22/02/2024 (RC).\n-Recomendación es volver a preguntar a Fiscal 209, pues puede haber algo nuevo de acuerdo con los avances de las investigaciones en y del cementerio de VIL.\n", "Nuevos avances": "- Diana Viveros - 19/09/2024: El caso será consultado en la mesa tecnica UBPD-INMLCF Meta, para el impulso a la identificación de cuerpos \n- Diana Viveros - 19/09/2024: El caso se vinculó a la estrategia de impulso a la identificación con cruces tecnicos y referenciales liderada por la DTPRI en el INMLCF de Villavicencio", "Plan de Trabajo": "Se retoma el caso en la Mesa tecnica con INMLC F en Septiembre de 2024\nConsultar el resultado de esta Mesa Técnica", "Responsable": "Diana Paola Viveros", "Plazo": "En ejecución"
+  },
+  {
+    "N°": 2, "PDD": "Mario Donaldo Guacapare Unda", "ID": 606, "Año": 2003, "Lugar Desaparición": "Pto. López - San Martín", "PRB": "Meta", "GITT RESPONSABLE": "Meta", "Investigador/a": "Viviana Paola Pinzon Rodriguez", "Solicitud de búsqueda": 1, "Dialogo inicial": 1, "Toma de Muestra": 1, "Localicación": 1, "Prospección": 1, "Identificación": "Se recuperó un cuerpo que está en el INMLCF en proceso de identificación. A la fecha no se ha logrado obener perfil genetico por alto estado de deterioro de las estructuras.", "SIRDEC": "x", "# SIRDEC": "2008D014555", "EXPEDIENTE": "Si", "Carpeta": "161727 MARIO MARULANDA PEREZ", "Nota": "Se encuentra en proceso de identificación. Recuperación de estructuras pequenas en mal estado de conservación", "NOMBRES SERVIDOR/A BUSCADOR/A": "Danellys Esmeralda Guacarapare Arango", "GITT AL QUE PERTENECE EL SERVIRDOR/A": "Villavicencio", "CARGO": "Técnico de Unidad Especial", "CONTACTO": "3212210590", "CORREO ELECTRÓNICO": "dguacaraparea@ubpdbusquedadesaparecidos.co", "PARENTESCO": "Papá", "Primer Grado de Consanguinidad": "Si", "LIDERA LA BÚSQUEDA": "Si", "OBSERVACIONES": "La Servidora es quien lidera la búsqueda. el GITT Meta realizó dos prospecciones y en una lorgo recuperar un cuerpo que pueda corresponde a la PDD. \nNo se puede ingresar a Sirdec por RD ni por MC, es decir que es probale que o esté registrado, lo cual hay que verificar y proseguir con el seguimiento del caso para saber en qué punto está.\nDiana Viveros - 19/09/2024: Realicé la consulta y se permite el ingreso a SIRDEC a traves del radicado 2008D014555", "Seguimiento": "-Anotaciones en la tabla, al parecer está registrado en Sirdec, pero ni por RD ni por MC se puede ingresar.\nRevisión de casos de 25/03/2024\n", "Nuevos avances": "- Diana Viveros - 19/09/2024: Realicé la consulta y se permite el ingreso a SIRDEC a traves del radicado 2008D014555\n- Diana Viveros - 19/09/2024: En agosto y septiembre de 2024 se recibieron tres aportes de información para continuar el proceso de investigación humanitaria.", "Plan de Trabajo": "El caso continua en seguimiento en el INMLCF Meta, en junio comunicarion que no ha sido posible obtener perfil genético de las estructuras óseas que se recuperaron", "Responsable": "Diana Paola Viveros", "Plazo": "En ejecución"
+  },
+  {
+    "N°": 3, "PDD": "Carlos Víctor Ortega Chicunque", "ID": 282, "Año": 1989, "Lugar Desaparición": "Facatativá", "PRB": "Bogotá", "GITT RESPONSABLE": "Bogotá", "Investigador/a": "Jaime Sebastian Arias Hernandez", "Solicitud de búsqueda": 1, "Dialogo inicial": 1, "Toma de Muestra": 1, "Localicación": 1, "Prospección": 1, "Identificación": 0, "SIRDEC": "x", "# SIRDEC": "2020D005839", "EXPEDIENTE": "Si", "Carpeta": "282 CARLOS VICTOR ORTEGA CHICUNQUE", "Nota": "Está pendiente por parte del GITT, dar cuenta del avance en la investigación posterior a la segunda prospección y retomar plan de trabajo para las acciones que continúen. Es importante resaltar que ha transcurrido ya un año y 5 meses sin después de la prospección sin tener noticia de parte del GITT, sobre los avances y las acciones a seguir. Igualmente, esto se reiteró en el contacto realizado en el marco de la implementación de la estrategia de contacto y a la fecha el GITT no ha realizado ningún contacto.", "NOMBRES SERVIDOR/A BUSCADOR/A": "Gloria Herney Galindez Claros", "GITT AL QUE PERTENECE EL SERVIRDOR/A": "DTPCVED", "CARGO": "Experto Tecnico 04", "CONTACTO": "3192596021", "CORREO ELECTRÓNICO": "ggalindezc@ubpdbusquedadesaparecidos.co", "PARENTESCO": "Esposo", "Primer Grado de Consanguinidad": "Si", "LIDERA LA BÚSQUEDA": "Si", "OBSERVACIONES": "Hace parte de un PRB Sabana. Cuenta de muestra biológica de referencia tomada a la madre y subida a CODIS. La última información subida a Sirdec fue el 24/05/2021. No se han realizado más acciones o no se han reportado en el Sirdec", "Seguimiento": "-C.C. :18123317\n-No ha ingresado un cadáver al INML asociado a esta persona, por lo cual no hay un número de protocolo (MC) asociado.\n-Cuenta de muestra biológica de referencia tomada a la madre y subida a CODIS. La última información subida a Sirdec fue el 24/05/2021. \n", "Nuevos avances": "Esta solicitud se encuentra dentro de la IHE de Militantes políticos, líderes sociales, estudiantiles y defensores de derechos humanos desaparecidos en Bogotá de manera forzada entre 1975 y 1997. Sobre esta línea se tienen distintos avances que se espera poder compartir en la próxima reunión con la PB. \nSobre la fase 3 de Facatativá, se espera que la antropóloga forense pueda realizar la planeación de la misma, por parte de la investigación se está recogiendo información adicional, pero en su mayoría no corresponde con inhumaciones en tierra. Esta sería una fase adicional a la investigación y su docmento que ya se encuentra construido. ", "Plan de Trabajo": "1. Revisar expediente del juzgado primero de instruccion criminal.", "Responsable": null, "Plazo": null
+  },
+  {
+    "N°": 4, "PDD": "Eduardo Loffsner Torres", "ID": 1236, "Año": 1986, "Lugar Desaparición": "Bogotá", "PRB": "Bogotá", "GITT RESPONSABLE": "Bogotá", "Investigador/a": "Lina Niyiba Pinzon Martinez", "Solicitud de búsqueda": 1, "Dialogo inicial": 1, "Toma de Muestra": 1, "Localicación": null, "Prospección": null, "Identificación": null, "SIRDEC": "x", "# SIRDEC": "2010D007928", "EXPEDIENTE": "Si", "Carpeta": "1236 EDUARDO LOFFSNER TORRES", "Nota": null, "NOMBRES SERVIDOR/A BUSCADOR/A": "Camilo Andres Ramírez Hache", "GITT AL QUE PERTENECE EL SERVIRDOR/A": "Subdirección información", "CARGO": "Contratista", "CONTACTO": "3124269371", "CORREO ELECTRÓNICO": "cramirezh@ubpdbusquedadesaparecidos.co", "PARENTESCO": "Papá", "Primer Grado de Consanguinidad": "Si", "LIDERA LA BÚSQUEDA": "No", "OBSERVACIONES": "Hijo de Luz Marina Hache y Eduardo Loffsner Torres (Desaparecido).Último ingreso de información 20/10/2022 a Sirdec, no hay más acciones realizadas desde esta época? O es que no se han registrado\nNota realizada por Camilo: El 19 de septiembre de 2024 se realizó reunión de seguimiento al caso y como familiares identificamos que existe información que ya se había solicitado su ajuste y que no se había realizado en su momento, esta actualización se hizo en el marco del mencionado encuentro. Igualmente se evidenció que una evidencia enviada en 2020 de una persona que realizó un \"Tweeter\" en el que mencionaba a Eduardo no había sido incluido como parte de los soportes documentales de la investigación.", "Seguimiento": "-C.C. :19303735\n-Se ha complementado la información AD y el 07/04/2022 se tomaron muestras biológicas de referencia a familiares. El 20/10/2022 se subió perfil Enel BPG. Desde esta fecha no se han reportado en Sirdec más acciones. \n-En módulo de cadáveres no hay ninguno asociado, por lo cual no ha ingresado un cadáver al INML, o a otra institución, asociado a esta persona, por lo cual no hay un número de protocolo (MC) asociado.\n-Falta diligenciar columnas de la tabla L, P, I; ID, \n-Último ingreso de información 20/10/2022 a Sirdec.\n- ¿Hay alguna acción más que no se haya registrado en Sirdec?\nRevisión de casos de 26/03/2024\n", "Nuevos avances": "Esta solicitud se encuentra dentro de la IHE de Militantes políticos, líderes sociales, estudiantiles y defensores de derechos humanos desaparecidos en Bogotá de manera forzada entre 1975 y 1997. Sobre esta línea se tienen distintos avances que se espera poder compartir en la próxima reunión con la PB.", "Plan de Trabajo": null, "Responsable": null, "Plazo": null
+  },
+  {
+    "N°": 5, "PDD": "Hernán del Castillo Ospino", "ID": 1154, "Año": 1987, "Lugar Desaparición": "Cartagena", "PRB": "Canal del Dique y Norte de Bolívar", "GITT RESPONSABLE": "Sucre", "Investigador/a": "José Andrés Gutiérrez Baldovino", "Solicitud de búsqueda": 1, "Dialogo inicial": 1, "Toma de Muestra": 1, "Localicación": null, "Prospección": null, "Identificación": "73110422", "SIRDEC": "x", "# SIRDEC": "2021D004226", "EXPEDIENTE": "Si", "Carpeta": "1154 HERNAN DEL CASTILLO OSPINO", "Nota": null, "NOMBRES SERVIDOR/A BUSCADOR/A": "Ella Cecilia del Castillo Pérez", "GITT AL QUE PERTENECE EL SERVIRDOR/A": "Atlantico", "CARGO": "Experto Tecnico 04", "CONTACTO": "3126379419", "CORREO ELECTRÓNICO": "edelcastillop@ubpdbusquedadesaparecidos.co", "PARENTESCO": "Ti@", "Primer Grado de Consanguinidad": "No", "LIDERA LA BÚSQUEDA": "Si", "OBSERVACIONES": "PRB Canal del Dique y Norte de Bolívar. Se tomaron muestras a familiares (madre y 2 hijos) en octubre de 2021 y para el 16//02/2022 se subieron los perfiles al BPG, no se reportan más acciones en Sirdec. Por módulo de cadáveres no hay cuerpos asociados con esta persona.", "Seguimiento": "-C.C. :73110422\n-Por la UBPD se radicó el caso en Sirdec en julio de 2022.\n-Se tomaron muestras a familiares (madre y 2 hijos) en octubre de 2021 y para el 16//02/2022 se subieron los perfiles al BPG, no se reportan más acciones en Sirdec.\n-Por módulo de cadáveres no hay cuerpos asociados con esta persona.\nRevisión de casos de 03/07/2024\n", "Nuevos avances": "Las muestras biologicas han sido procesadas y codificadas con el Radicado Genetica 2108000604, e  ingresados  los perfiles genéticos al Banco de Perfiles Genéticos de Desaparecidos (BPGD). Se esperan los resultados de los cruces. ", "Plan de Trabajo": "Se está en la construcción de informe de intervención en el cementerio de Albornoz en Cartagena, ya que este ha sido históricamente el sitio de disposición de CNI y CINR de la ciudad y sus alrededores, se están revisando necropcias  de CNI y CINR para identificar coincidencias. Y se espera llevar acabo la intervención del cementerio para finales del mes de Septimbre. Sin embargo a la fecha con el cruce de información que hemos desarrollado no encontramos coicidencia,  indicios que nos permita rlacionar alguna identidad orientada entre los informes de necropsia de CNI y CINR revisados y la PDD.", "Responsable": "José Andrés Gutiérrez Baldovino", "Plazo": null
+  },
+  {
+    "N°": 6, "PDD": "Hernando de Jesús Balvin", "ID": 146167, "Año": 2002, "Lugar Desaparición": "Medellín", "PRB": "Bajo Cauca", "GITT RESPONSABLE": "Antioquía", "Investigador/a": "Olga Nubia Higuita \n\n\nSabina Carmona ", "Solicitud de búsqueda": 1, "Dialogo inicial": 1, "Toma de Muestra": 1, "Localicación": null, "Prospección": null, "Identificación": null, "SIRDEC": "x", "# SIRDEC": "2012D009452", "EXPEDIENTE": "Si", "Carpeta": "CJL20180506014 HernandoDeJesusBalvin", "Nota": "Inicio de proceso de búsqueda en la escombrera", "NOMBRES SERVIDOR/A BUSCADOR/A": "María Alejandra Balvin", "GITT AL QUE PERTENECE EL SERVIRDOR/A": "OACP", "CARGO": "Contratista", "CONTACTO": "3195474254", "CORREO ELECTRÓNICO": "mbalvinc@ubpdbusquedadesaparecidos.co", "PARENTESCO": "Papá", "Primer Grado de Consanguinidad": "Si", "LIDERA LA BÚSQUEDA": "No", "OBSERVACIONES": "Medellin GITT es quien llleva la búsqueda. Toma de muestras biológicas en 2021 cuyos perfiles ingresan a CODIS en junio de 2022, pero no ha habido coincidencias en las búsquedas la última de las cuales fue el 04//10/2023. En módulo de cadáveres no hay cuerpos asociados con esta persona.", "Seguimiento": "-C.C. :3371216\n-Toma de muestras biológicas en jornada de la UB en septiembre de 2021, los perfiles ingresan a CODIS en junio de 2022, pero no ha habido coincidencias en las búsquedas la última de las cuales fue el 04//10/2023.\n-Por módulo de cadáveres no hay cuerpos asociados con esta persona.\n-En las columnas DI, P, I y expediente de la tabla no hay información.\n", "Nuevos avances": null, "Plan de Trabajo": null, "Responsable": null, "Plazo": null
+  },
+  {
+    "N°": 7, "PDD": "Adonis de Jesús Balvin Ospina", "ID": 143011, "Año": 2006, "Lugar Desaparición": "Caucasia", "PRB": "Bajo Cauca", "GITT RESPONSABLE": "Antioquía", "Investigador/a": "Olga Nubia Higuita \n\n\nSabina Carmona ", "Solicitud de búsqueda": 1, "Dialogo inicial": 1, "Toma de Muestra": 1, "Localicación": null, "Prospección": null, "Identificación": null, "SIRDEC": "x", "# SIRDEC": "2022D029630", "EXPEDIENTE": "Si", "Carpeta": "143011 ADONIS DE JESÚS BALVÍN", "Nota": "Aportante no es familiar directo.", "NOMBRES SERVIDOR/A BUSCADOR/A": "María Alejandra Balvin", "GITT AL QUE PERTENECE EL SERVIRDOR/A": "OACP", "CARGO": "Contratista", "CONTACTO": "3195474254", "CORREO ELECTRÓNICO": "mbalvinc@ubpdbusquedadesaparecidos.co", "PARENTESCO": "Herman@", "Primer Grado de Consanguinidad": "Si", "LIDERA LA BÚSQUEDA": "No", "OBSERVACIONES": "Medellin GITT es quien llleva la búsqueda. Información relacionada con esta persona es muy poca, sobre los hechos de la desaparición, información personal y demás prácticamente no hay nada. En seguimiento solo aparece que es un caso migrado desde la UBPD. Debe procurar entrevistarse con familia para que de información valiosa para la búsqueda, de igual manera para que aporte la muestra de refeencia.", "Seguimiento": "C.C.: NA\n-En Sirdec la información relacionada con esta persona es muy poca, sobre los hechos de la desaparición, información personal y demás prácticamente no hay nada. En seguimiento solo aparece que es un caso migrado desde la UBPD.\n-En las columnas de DI, L, P, I y expediente de la tabla no hay información.\n", "Nuevos avances": null, "Plan de Trabajo": null, "Responsable": null, "Plazo": null
+  },
+  {
+    "N°": 8, "PDD": "Manuel Vicente Salazar Velásquez", "ID": 7641, "Año": 1991, "Lugar Desaparición": "Apartadó", "PRB": "Eje Bananero", "GITT RESPONSABLE": "Apartadó", "Investigador/a": "Juan Camilo Gallego Castro", "Solicitud de búsqueda": 1, "Dialogo inicial": 1, "Toma de Muestra": 1, "Localicación": null, "Prospección": null, "Identificación": null, "SIRDEC": "x", "# SIRDEC": "2017D006334", "EXPEDIENTE": "Si", "Carpeta": "7641 MANUEL VICENTE SALAZAR VELASQUEZ", "Nota": "AOF de identificación", "NOMBRES SERVIDOR/A BUSCADOR/A": "Lisdesy Salazar Santos", "GITT AL QUE PERTENECE EL SERVIRDOR/A": "Apartadó", "CARGO": "Analista 01", "CONTACTO": "3104916353", "CORREO ELECTRÓNICO": "lsalazars@ubpdbusquedadesaparecidos.co", "PARENTESCO": "Herman@", "Primer Grado de Consanguinidad": "Si", "LIDERA LA BÚSQUEDA": "No", "OBSERVACIONES": "La mamá biológica de su hermano medio es quien colocó la solicitud de búsqueda. Muestras de referencia a hermano y madre tomass el presente año y subidas a CODIS en mayo. Se suguiere tratar de completar información biológica de la persona y de los hechos relacionado con la desaparición en el Sirdec", "Seguimiento": "-C.C.: 71940331\n-Sobre los hechos de la desaparición, información personal y demás prácticamente no hay nada en el Sirdec.\n-En marzo de 2024 se tomó muestra de referencia a la madre y un hermano de la PD, dichas muestras se subieron a CODIS en mayo de 2024, aún no se especifica si hubo, o no, coincidencias. Se siguiere completar información biológica de la persona y la relacionada con las circunstancias de la desaparición.\n", "Nuevos avances": null, "Plan de Trabajo": null, "Responsable": null, "Plazo": null
+  },
+  {
+    "N°": 9, "PDD": "Pablo Pacheco Fonseca", "ID": 147984, "Año": "1970-1980", "Lugar Desaparición": "Palmitos Sucre", "PRB": "Montes de María y Morrosquillo", "GITT RESPONSABLE": "Sucre", "Investigador/a": "Liliana Mercedes Gómez Benítez", "Solicitud de búsqueda": 1, "Dialogo inicial": 1, "Toma de Muestra": null, "Localicación": null, "Prospección": null, "Identificación": null, "SIRDEC": null, "# SIRDEC": "No", "EXPEDIENTE": "Si", "Carpeta": "147984 PABLO ND PACHECO FONSECA", "Nota": "Nos encontramos en proceso de contactar familiares que puedan aportar muestras genéticas.", "NOMBRES SERVIDOR/A BUSCADOR/A": "Esperanza Carolina Satizabal Fonseca ", "GITT AL QUE PERTENECE EL SERVIRDOR/A": "Regional Centro", "CARGO": "Técnico de Unidad Especial\n2", "CONTACTO": "3007488281", "CORREO ELECTRÓNICO": "esatizabalf@ubpdbusquedadesaparecidos.co", "PARENTESCO": "Prim@", "Primer Grado de Consanguinidad": "No", "LIDERA LA BÚSQUEDA": "Si", "OBSERVACIONES": "Caso no registrado en Sirdec, por lo cual se requiere que dialogar con la familia para conocer los motivos por los cuales no se ha reportado el caso. Sin embargo, se buscó por módulo de cadáveres Sirdec por si ha ingresado algún cuerpo con esa posible identidad y no se logró ingreso.", "Seguimiento": "-C.C.: ¿?\n-Caso no registrado en Sirdec, por lo cual se requiere que dialogar con la familia para conocer los motivos por los cuales no se ha reportado el caso. Sin embargo, se buscó por módulo de cadáveres Sirdec, por si ha ingresado algún cuerpo con esa posible identidad y no se logró ingreso.\n", "Nuevos avances": "08/11/2024 Se solicitó apoyo a la subdirección de gestión de información para el acceso al periodico de amplia circulación nacional. Se aperturó SIRDEC Radicado No 2024D008614, con la información básica de la SB, sin embargo se deben acceder a otros familiares para la realización de la entrevista forense con fines de identificación.\n09/08/2024 Diálogo virtual de ampliación de información con la servidora que lidera la búsqueda. Quedaron unos compromisos de información importantes para la familia y la UBPD.\n13/08/2024. Se envío oficio de solicitud de información al Inspector de Polícia del municipio de Los Palmitos - Sucre, solicitando actas de levantamiento de cuerpos y demás documentos relacionados con muertes violentas entre los años 1970 y 1980.", "Plan de Trabajo": "El plan de trabajo contempla:\n- Diálogo de ampliación con otros familiares que se puedan vincular a la búsqueda.\n-Oficio de solicitud de información de actas de levantamiento a Inspección de Polícia a San Antonio de Palmito y Los Palmitos.\n- Entrevista a líderes de la época de la Anuc en el municipio de Los Palmitos (Sucre).\n- Solicitud de información a fuerza pública. \n- Visita al Cementerio y entrevista a sepultureros.", "Responsable": null, "Plazo": null
+  },
+  {
+    "N°": 10, "PDD": "Harold Alberto Murillo Londoño", "ID": 141143, "Año": 1999, "Lugar Desaparición": "Meta/Caquetá", "PRB": "Meta - Caquetá", "GITT RESPONSABLE": "Meta", "Investigador/a": "Danellys Esmeralda", "Solicitud de búsqueda": 1, "Dialogo inicial": 1, "Toma de Muestra": 1, "Localicación": null, "Prospección": null, "Identificación": null, "SIRDEC": "x", "# SIRDEC": "2021D007665", "EXPEDIENTE": "Si", "Carpeta": "141143 HAROLD ALBERTO MURILLO LONDOÑO", "Nota": "Muestra no registrada (Pero en Sirdec se encuentra que sí se tomó muestra y que se subió al BPG con cruces negativos)", "NOMBRES SERVIDOR/A BUSCADOR/A": "David Rodríguez Murillo", "GITT AL QUE PERTENECE EL SERVIRDOR/A": "OACP\nOficina de Asesoría, Comunicaciones y Pedagogía", "CARGO": "Experto Tecnico 03", "CONTACTO": "3185165228", "CORREO ELECTRÓNICO": "drodriguezmu@ubpdbusquedadesaparecidos.co", "PARENTESCO": "Ti@", "Primer Grado de Consanguinidad": "No", "LIDERA LA BÚSQUEDA": "No", "OBSERVACIONES": "Último reporte en Sirdec fue el 25/01/2022 da cuenta del ingreso de perfiles genéticos de familiares en el BPG y cruces negativos. 2.5 años sin acciones? Por módulo de cadáveres no hay cuerpos relacionados con la PD. \n\nDe acuerdo al relato de los hechos, el último lugar donde se supo de la PDD es Meta, la posibilidad de ir al Caguán no se concretó, en este sentido la SB debe ser de conocimiento del GITT Meta. No obstante, en Caquetá presentaremos el caso en espacios colectivos y estaremos prestos a apoyar en lo necesario para documentar el caso.", "Seguimiento": "-C.C.: 16707290\n-Último reporte en Sirdec fue el 25/01/2022 da cuenta del ingreso de perfiles genéticos de familiares en el BPG y cruces negativos. 2.5 años sin acciones? Por módulo de cadáveres no hay cuerpos relacionados con la PD.\n\n6/12/2024: GITT Agendó diálogo de ampliación con la PB", "Nuevos avances": "6/12/2024: GITT Agendó diálogo de ampliación con la PB. No hay información sobre el lugar desaparición, en la investigación no se ha encontrado datos para construir posibles hipotesis", "Plan de Trabajo": "6/12/2024: GITT Agendó diálogo de ampliación con la PB", "Responsable": null, "Plazo": "27/12/2024"
+  },
+  {
+    "N°": 11, "PDD": "Hugo Lino Ospina Hoyos", "ID": 4318, "Año": 2013, "Lugar Desaparición": "Muzo - Boyacá", "PRB": "Occidente de Boyacá", "GITT RESPONSABLE": "Boyacá", "Investigador/a": "Leonardo Parra Rojas", "Solicitud de búsqueda": 1, "Dialogo inicial": null, "Toma de Muestra": 1, "Localicación": null, "Prospección": null, "Identificación": null, "SIRDEC": "x", "# SIRDEC": "2013D009203", "EXPEDIENTE": "Si", "Carpeta": "4318 HUGO LINO OSPINA HOYOS", "Nota": "Se realizó toma de muestras a la hermana y madre de la PDD, se registra tal acción en SIRDEC. \nFalta el proceso de documentación del caso", "NOMBRES SERVIDOR/A BUSCADOR/A": "Lina Paola Martínez Reyes", "GITT AL QUE PERTENECE EL SERVIRDOR/A": "Cali", "CARGO": "Experto Tecnico 04", "CONTACTO": "3014134496", "CORREO ELECTRÓNICO": "lmartinezr@ubpdbusquedadesaparecidos.co", "PARENTESCO": "Prim@", "Primer Grado de Consanguinidad": "No", "LIDERA LA BÚSQUEDA": "No", "OBSERVACIONES": "Cuenta con expediente creado, sin embargo no tiene ninguna información ni acción con la familia. ¿Qué ha pasado con las historias clínica y odontológica solicitadas a Comfamiliar de Boyacá? (estaba afiliado a esta entidad según el Fosiga). Se esperan resultados sobre subir muestras al BPG y sus respectivos cruces. En módulo de cadáveres no se relacionan casos con la orientación hacia la PD.", "Seguimiento": "-En el registro Sirdec el nombre está como Hugolino\n-C.C.:1002700612\n-Qué ha pasado con las historias clínica y odontológica solicitadas a Comfamiliar de Boyacá (estaba afiliado a esta entidad según el Fosiga).\n-En junio 27 de 2024 se recibieron muestras biológicas de madre y hermana de Hugolino en el IMLCF Bogotá, se esperan resultados dentro de poco tiempo. En módulo de cadáveres Sirdec no se ha registrado cuerpo relacionado.\n", "Nuevos avances": "Se realizó contacto efectivo con la PB y se le comunicó la asignación de investigador del GITT de Boyacá. Se actualizó información de PB en SIM BUSQUEMOS junto con registro de acciones de participación.  ", "Plan de Trabajo": "Tener en cuenta la relación con las FFAA ya que fue soldado perteneciente a batallón de artillería y la ruta minera Muzo-Zipaquirá-Pacho. Tener en cuenta actualización de hechos. Indagar posibles sitios de disposición en cundinamarca asociados a la ruta.", "Responsable": null, "Plazo": null
+  },
+  {
+    "N°": 11, "PDD": "Mario Marulanda Pérez", "ID": 161727, "Año": 2000, "Lugar Desaparición": "Tolima ", "PRB": "Norte del Tolima ", "GITT RESPONSABLE": "Tolima ", "Investigador/a": "Wilmer Leonardo Morales Agudelo", "Solicitud de búsqueda": 1, "Dialogo inicial": 1, "Toma de Muestra": 1, "Localicación": null, "Prospección": null, "Identificación": null, "SIRDEC": "x", "# SIRDEC": "2008D014406", "EXPEDIENTE": "Si", "Carpeta": "161727 MARIO MARULANDA PEREZ", "Nota": "Se realizó toma de muestra biologica Andrés Felipe Marín el 19/12/2023-Satélite La Dorada, se registra tal acción en SIRDEC. \nLa UBPD toma Muestra biológica de referencia a la madre, conyuge, hijos de la PDD Mario Marulanda Pérez,  el 25 de septiembre de 2023 en la ciudad de Manizales.\n", "NOMBRES SERVIDOR/A BUSCADOR/A": "Andrés Felipe Marín Arcila", "GITT AL QUE PERTENECE EL SERVIRDOR/A": "Eje Cafetero", "CARGO": "Experto Tecnico 04", "CONTACTO": "3146253169", "CORREO ELECTRÓNICO": "amarina@ubpdbusquedadesaparecidos.co", "PARENTESCO": "Papá", "Primer Grado de Consanguinidad": "Si", "LIDERA LA BÚSQUEDA": "No", "OBSERVACIONES": "Aunque ya se habían tomado muestras biológicas, se hizo la toma a un hijo, en jornada de toma de muestras biológicas en diciembre de 2023 en La Dorada, por parte de la UBPD. Se esperan resultados de cruces de perfiles, pues ya se debieron subir al Banco. Último registro en Sirdec el 13/02/2024, es decir, ya se puede hacer consulta del caso. En módulo de cadáveres no hay registro sobre cuerpos relacionados con la PDD. ¿Se ha intentado contactar a familiares de José Uldarico Pineda, desaparecido con Mario? sería pertinente hacerlo.", "Seguimiento": "-C.C.: 74582171\n-¿Se ha intentado contactar a familiares de José Uldarico Pineda, desaparecido con Mario?\n-Toma de muestra biológica a un hijo de la PDD, en jornada de toma de muestras biológicas en diciembre de 2023 en La Dorada, la UBPD. Se esperan resultados de cruces de perfiles, pues ya se debieron subir al Banco. \n-Último registro en Sirdec el 13/02/2024, es decir, ya se puede hacer consulta del caso.  En módulo de cadáveres no hay registro sobre cuerpos relacionados con la PDD.\n", "Nuevos avances": "EN el SIRDEC se encuentra en proceso genetica (12/07/2024), recibieron las muestras biológicas de familiares de la persona desaparecida y se radicaron en el caso de genética (2008D014406) para ser perfiladas e ingresadas al Banco de Perfiles Genéticos de Desaparecidos (BPGD). Durante el seguimiento al caso en SIRDEC,  el dia 02/08/2024, se evidencia lo siguiente: El Perfil Genético obtenido del caso genética N° 2408000339, se ingresó al Banco de Perfiles Genéticos de Desaparecidos BPGD. Adicionalmente, se remite la información a la Administración del Banco donde se realizará la respectiva búsqueda. En caso de encontrar coincidencia, esta se debe verificar en conjunto con el grupo interdisciplinario de identificación y se comunicará mediante informe integrado de identificación.\n", "Plan de Trabajo": "2.        ARTICULACIÓN DEL EQUIPO DEL TOLIMA CON LA FAMILIA Y CON EL EQUIPO DEL HUILA. \n3.        DIÁLOGO CON EL EQUIPO DEL TOLIMA Y HUILA Y LA FAMILIA, SOBRE AVANCES DEL CEMENTERIO CENTRAL DE NEIVA. \n4.        JORNADA DE TRABAJO CON FUERZA PÚBLICA PARA MENCIONAR EL  SOBRE EL CASO DE MARIO MARULANDA PÉREZ Y JOSÉ ULDARICO PINEDA CARDENAS. \n", "Responsable": null, "Plazo": null
+  },
+  {
+    "N°": 12, "PDD": "Carlos Marulanda Pérez", "ID": 197021, "Año": 2000, "Lugar Desaparición": "Santa Cecilia Risaralda", "PRB": "Eje Cafetero", "GITT RESPONSABLE": "Pereira", "Investigador/a": "Laura Lucía González Marín", "Solicitud de búsqueda": 1, "Dialogo inicial": 1, "Toma de Muestra": 1, "Localicación": null, "Prospección": null, "Identificación": null, "SIRDEC": "x", "# SIRDEC": "2023D005982", "EXPEDIENTE": "Si", "Carpeta": "197021 CARLOS ALBERTO MARULANDA PEREZ", "Nota": "Se realizó toma de muestras a hijo, hermano y expareja de la PDD el 26/09/2023 en Manizales por Cindy Doreidy Nova Chacón de la UBPD", "NOMBRES SERVIDOR/A BUSCADOR/A": "Andrés Felipe Marín Arcila", "GITT AL QUE PERTENECE EL SERVIRDOR/A": "Eje Cafetero", "CARGO": "Experto Técnico 04", "CONTACTO": "3146253169", "CORREO ELECTRÓNICO": "amarina@ubpdbusquedadesaparecidos.co", "PARENTESCO": "Ti@", "Primer Grado de Consanguinidad": "No", "LIDERA LA BÚSQUEDA": "No", "OBSERVACIONES": "En febrero del presente se subieron las muestras al BPG, pero no hay resultados aún", "Seguimiento": "-C.C.: 75075555\n-El 14/02/2024 se subió la última información en el Sirdec en la cual se indica que las muestras biológicas de familiares de la PD se ingresaron al BPG, pero no hay más información al respecto. ¿Ya habrá resultados al respecto?\n-En la tabla Excel no se relaciona este caso con ningun@ servidor@ de la UBPD y no hay más información, es necesario ampliarla, o por lo menos indicar el por qué no hay información.\n-Por módulo de cadáveres Sirdec no se puede ingresar.\n", "Nuevos avances": "El último reporte en SIRDEC fue el 05/08/2024 da cuenta de lo siguiente: \"El Perfil Genético obtenido del caso genética N° 2408000348 se ingresó al Banco de Perfiles Genéticos de Desaparecidos BPGD. Adicionalmente, se remite la información a la Administración del Banco donde se realizará la respectiva búsqueda. En caso de encontrar coincidencia, esta se debe verificar en conjunto con el grupo interdisciplinario de identificación y se comunicará mediante informe integrado de identificación\".\n\nEl 23 de mayo de 2024 se realizó primer contacto con Andrés Felipe Marín, para precisar los detalles de la solicitud de búsqueda y realizar contacto con la otra persona que lidera la búsqueda", "Plan de Trabajo": "El plan de trabajo contempla:\n- Diálogo de ampliación de información con la tía de la PDD programada para el 30 de septiembre de 2024 en Manizales\n- Acciones de investigación humanitaria y extrajudicial en el municipio de Mistrató, Risaralda, en el marco del PRB Risaralda y occidente de Caldas\n- Acciones para ubicar o tratar de contactar personas que puedan contar con información relevante para la búsqueda, entre ellas la expareja de la PDD, quien podría tener información sobre lugar de ubicación. ", "Responsable": "Laura Lucía González Marín", "Plazo": "En ejecución"
+  },
+  {
+    "N°": 14, "PDD": "José Gregorio Ruiz Lozano", "ID": 9060, "Año": 2000, "Lugar Desaparición": "Tibacuy Cundinamarca", "PRB": "Cundinamarca", "GITT RESPONSABLE": "Bogotá", "Investigador/a": "Jaime Sebastian Arias Hernandez Gerson Cortes Padilla", "Solicitud de búsqueda": 1, "Dialogo inicial": 1, "Toma de Muestra": 1, "Localicación": null, "Prospección": null, "Identificación": null, "SIRDEC": "x", "# SIRDEC": "2022D021766", "EXPEDIENTE": "Si", "Carpeta": "9060 JOSE GREGORIO RUIZ LOZANO", "Nota": "Se ha adelantado recolección de información sobre posible lugar de inhumación en el municipio de Viotá, Cundinamarca. Se esta adelantando construcción del informe narrativo para la prospección de varios sitios de interés forense en este municipio, en donde se incluye este.", "NOMBRES SERVIDOR/A BUSCADOR/A": "Jennifer Colombia Ruiz Rubio", "GITT AL QUE PERTENECE EL SERVIRDOR/A": "Guaviare", "CARGO": "Analista Técnico 01 - Apoyo Administrativo", "CONTACTO": "313 333 05 09", "CORREO ELECTRÓNICO": "jruizr@ubpdbusquedadesaparecidos.co", "PARENTESCO": "Abuelo", "Primer Grado de Consanguinidad": "No", "LIDERA LA BÚSQUEDA": "Si", "OBSERVACIONES": "En Sirdec solo se encuentra que el caso migró del universo de la UB (08/08/2022) Se requiere saber si después de esto ha habido algunas acciones, cuáles? Si es así, debe actualizarse el Sirdec.", "Seguimiento": "-C.C.: 251666\nEn seguimiento de Sirdec el 08/08/2022 solo se encuentra que el caso migró del universo de desaparecidos de la UBPD, no dice más. Por módulo de cadáver no hay como ingresar en razón a que o ingresado al IML un cuerpo con dicha orientación.\n", "Nuevos avances": "Se ha adelantado recolección de información sobre posible lugar de inhumación en el municipio de Viotá, Cundinamarca. Se esta adelantando construcción del informe narrativo para la prospección de varios sitios de interés forense en este municipio, en donde se incluye este.", "Plan de Trabajo": null, "Responsable": "Jaime Sebastian Arias Hernandez", "Plazo": "julio de 2025"
+  },
+  {
+    "N°": 13, "PDD": "Luis Gerardo Zapata Posada", "ID": 6501, "Año": 1998, "Lugar Desaparición": "Cartagena del Chaira", "PRB": "Caquetá Norte", "GITT RESPONSABLE": "Caquetá", "Investigador/a": "Adiela Córdoba Córdoba", "Solicitud de búsqueda": 1, "Dialogo inicial": 1, "Toma de Muestra": 1, "Localicación": 1, "Prospección": null, "Identificación": "96350592", "SIRDEC": "x", "# SIRDEC": "2018d0048867", "EXPEDIENTE": "Si", "Carpeta": "RESERVADO 6501 LUIS GERARDO ZAPATA POSADA\n\nhttps://drive.google.com/drive/u/0/folders/1OhWyRn9Boj6nn0z-LtvzAaVbL_nLYRkI\n\nhttps://drive.google.com/drive/u/0/folders/13olmbx6DWKxvJip6MG-mJLTvtIxMi1MG", "Nota": "Los hechos se encuentran documentados desde la familia como fuente primaria, existen dos hipótesis de localización indicadas por la familia las cuales no se han podido triangular pese a los esfuerzos en la búsqueda de aportantes de información.\nSe han realizado grupos focales con fuentes comunitarias sin lograr éxito en precizar un lugar.", "NOMBRES SERVIDOR/A BUSCADOR/A": "Carlos Enrique Zapata Bohórquez", "GITT AL QUE PERTENECE EL SERVIRDOR/A": "DTPCVED", "CARGO": "Experto Tecnico 04", "CONTACTO": "3114517647", "CORREO ELECTRÓNICO": "czapata@ubpdbusquedadesaparecidos.co", "PARENTESCO": "Papá", "Primer Grado de Consanguinidad": "Si", "LIDERA LA BÚSQUEDA": "Si", "OBSERVACIONES": "Lidera la búsqueda : Última acción registrada en Sirdec 19/05/2021.Localización para primera quincena agosto 2024", "Seguimiento": "\n-Desaparecido en enero de 1998. Última acción registrada en SIRDEC 19/05/2021 dando cuenta de envío de muestras biológicas de la Cónyuge y dos hijas al INMLCF, ya se tenían la del hijo, pero no hay respuesta a la fecha. \n-Por MC no han ingresado cuerpos con esa orientación. \nLa SB se encuentra documentada por familiares, no existe un aportante de información para este caso, se han realizado espacios con pobladores rurales de los lugares referidos como posibles lugares de inhumación para reforzar la tesis de un posible lugar de interés forense sin que a la fecha se logre aporte de fondo. No existe información sólida que permita determinar un posible lugar para intervenir con fines de recuperación.\n", "Nuevos avances": null, "Plan de Trabajo": null, "Responsable": null, "Plazo": null
+  },
+  {
+    "N°": 14, "PDD": "José Roselino Granados Galindo", "ID": 77, "Año": 2003, "Lugar Desaparición": "Cerro de San José", "PRB": "Sur de Casanare", "GITT RESPONSABLE": "Casanare", "Investigador/a": "Ana Salazar", "Solicitud de búsqueda": 1, "Dialogo inicial": 1, "Toma de Muestra": 1, "Localicación": null, "Prospección": 1, "Identificación": null, "SIRDEC": "x", "# SIRDEC": "2007D002164", "EXPEDIENTE": "Si", "Carpeta": "Jose Roselino Granados", "Nota": "Desde la FGN y la UBPD con el acompañamiento de Equitas y Equipo Jurídico Pueblos, se han realizado labores de prospección en lugar señalado como posible lugar de disposición, sin hallazgos positivos.", "NOMBRES SERVIDOR/A BUSCADOR/A": "Marcela Granados Ballesteros", "GITT AL QUE PERTENECE EL SERVIRDOR/A": "Subdirección información", "CARGO": "Contratista", "CONTACTO": "3124438236", "CORREO ELECTRÓNICO": "mgranadosb@ubpdbusquedadesaparecidos.co", "PARENTESCO": "Papá", "Primer Grado de Consanguinidad": "Si", "LIDERA LA BÚSQUEDA": "Si", "OBSERVACIONES": "Falta anexar información del Servidor de la UB y su relación con la PD. Por qué se expidió un Registro Civil de Defunción?", "Seguimiento": "-C.C.: 1026683\n-Desde 2010 el caso se ha venido siguiendo, lo cual se ha registrado en Sirdec.\n-Según Sirdec, se expidió un registro civil de defunción indicativo serial 04703754 a nombre de Granados Galindo José Roselino. Se debe completar la ficha con la información del(a) servidor(a) de la UB.\nRevisión de casos de 12/07/2024\n", "Nuevos avances": "- A través de la estrategia Contáctenos de la UBPD se estableció comunicación con la señora Marcela Granados en el mes de mayo de 2024 para informar que se estaba dando continuidad a las labores de búsqueda de sus seres queridos.\n- Por otra parte, es de resaltar que se han realizado jornadas comunitarias en las veredas Chuyaguá, Sinagaza, Guruvita, a fin de recolpilar información que permita establecer suerte y paradero, sin embargo hasta la fecha ninguno de los aportes recopilados están asociados a la PDD en referencia.\n- Se incluyó la SB a la línea de investigación \"arremetida paramiltiar en Chámeza y Recetor entre 2002-2003\" donde hay 27 SB asociadas incluyendo la del señor José Roselino Granados.", "Plan de Trabajo": "Búsqueda de información en cárceles de Casanare con PPL que pertenecieron a las ACC. Se realizó un primer encuentro en Mayo 31 de 2024, se relizó otro encuentro el 2 de agosto de 2024 y se realizará otro encuentro el 28 de agosto de 2024.", "Responsable": "Ana Salazar", "Plazo": "En ejecución"
+  },
+  {
+    "N°": 15, "PDD": "Italo Julio Granados Ballesteros", "ID": 76, "Año": 2003, "Lugar Desaparición": "Sogamoso - Pajarito (Boyacá)", "PRB": "Casanare", "GITT RESPONSABLE": "Boyacá", "Investigador/a": "Rosa Agudelo", "Solicitud de búsqueda": 1, "Dialogo inicial": 1, "Toma de Muestra": 1, "Localicación": null, "Prospección": null, "Identificación": null, "SIRDEC": "x", "# SIRDEC": "2009D005076", "EXPEDIENTE": "Si", "Carpeta": "76 ITALO GRANADOS BALLESTEROS", "Nota": "El caso lo venía asumiento Casanare, no ostante con la creación del GITT Boyacá se dará inicio al proceso de búsqueda por parte de éste equipo. ", "NOMBRES SERVIDOR/A BUSCADOR/A": "Marcela Granados Ballesteros", "GITT AL QUE PERTENECE EL SERVIRDOR/A": "Subdirección información", "CARGO": "Contratista", "CONTACTO": "3124438236", "CORREO ELECTRÓNICO": "mgranadosb@ubpdbusquedadesaparecidos.co", "PARENTESCO": "Herman@", "Primer Grado de Consanguinidad": "Si", "LIDERA LA BÚSQUEDA": "Si", "OBSERVACIONES": "Se requiere actualizar la información en esta tabla incluyendo la relacionada con el(a) servidor@ de la UB . Igualmente sugerir un cambio de fecha, en Sirdec pues al parecer digitaron 2018 por 2008. \nEn el SIRDEC se hace refencia al 2018, como el año en el cual la familia aportó la información. \n\n", "Seguimiento": "-C.C. 4087420\n-Información no coincidente en la “descripción de los hechos” de Sirdec (según información de familiares 13/08/2018) y la fecha de desaparición de este en Sirdec (01/12/2004), debe ser un error que hay que solicitar su corrección.\n-Se requiere actualizar la tabla Excel. pues no hay información sobre el servidor de la UB que tiene el vínculo con la PD. \n-Por módulo de cadáveres no se hallan cuerpos que pudieron ingresar al sistema ML relacionados con la PDD.\n", "Nuevos avances": "En el mes de agosto por solcitud del GITT Boyacá, desde la Estrategia de contacto se estableció comunicación con la PB, para avanzar en la caracterización de la PDD y las PB, la información fue registrada en el SIM Busquemos. \nEn el mismo mes desde el GITT Boyacá se solicitó a Marcela tener comuniación con Alejandro hermano de la PDD, quien solicitó esperar un tiempo entre tanto la familia atiende temas personales que le impiden hablar con la UBPD con prontitud. ", "Plan de Trabajo": "Realizar diálogo de ampliación con el hermano de la PDD\nRevisar información en el libro de registros con la Unidad Básica de Medicina Legal - Sogamoso y el libro de ingresos en el cemeterio de Sogamoso. ", "Responsable": "Rosa Agudelo", "Plazo": "El espacio de trabajo con el hermano de la PDD, dependerá de la confirmación del mismo. Las demás acciones se agotarán entre agosto y septiembre. \n\n"
+  },
+  {
+    "N°": 16, "PDD": "Gregorio Granados Galindo", "ID": 80, "Año": 2000, "Lugar Desaparición": "Monterrey", "PRB": "Casanare", "GITT RESPONSABLE": "Casanare", "Investigador/a": "Ibeth Cáceres", "Solicitud de búsqueda": "x", "Dialogo inicial": "x", "Toma de Muestra": "x", "Localicación": null, "Prospección": 1, "Identificación": null, "SIRDEC": "x", "# SIRDEC": "2010D006884", "EXPEDIENTE": "Si", "Carpeta": "80 GREGORIO GRANADOS GALINDO", "Nota": "Prospección con Fiscalía - UBPD", "NOMBRES SERVIDOR/A BUSCADOR/A": "Marcela Granados Ballesteros", "GITT AL QUE PERTENECE EL SERVIRDOR/A": "Subdirección información", "CARGO": "Contratista", "CONTACTO": "3124438236", "CORREO ELECTRÓNICO": "mgranadosb@ubpdbusquedadesaparecidos.co", "PARENTESCO": "Sobrina", "Primer Grado de Consanguinidad": "No", "LIDERA LA BÚSQUEDA": "Si", "OBSERVACIONES": "Falta actualizar esta tabla especialmente en relación con el(a) servidor@ de la UB . Igualmente sugerir que si hay más información sobre los hecho en que desapareció la persona se ingresen a Sirdec. ¿Qué hay con respecto a la prspección con la FGN que se registra aquí?                                                                                                                                                      Marcela Granados: Se hizo diligencia de prospección en la vereda el guichiri en Monterrey Casanare con el equipo de fiscalía con la Dra. Zulma del Grube, en las fechas del 23 al 27 de Agosto del presente año, se buscó a Rufino Granados Espinoza y a Gregorio Granados Galindo. por tal motivo solicitamos a la UBPD que se vuelvan a hacer las mesas técnicas con el fin de hacer trabajos articulados con fiscalía, las organizaciones y los familiares, donde se tenga encuentra la coordinación o contribución entre las entidades. La familia no ha tenido información alguna sobre la desaparición de Gregorio Granados Espinoza y Maria de los Ángeles Espinoza, queremos respuesta ya que se cumplieron 24 años de sus desapariciones. Desde hace más de un año la familia no ha tenido reunión con UBPD,", "Seguimiento": "-C.C.: 1026736\n-En Sirdec hay muy poca información referente a los hechos en que desapreció la persona.\n-¿Por qué el 27/02/2010 el Sistema Nacional de la Registraduría Nacional del estado civil nombre Gregorio granados y registra cédula vigente cancelada por muerte ¿?.\n-En la tabla Excel se da cuenta de una prospección con la FGN y UB, pero en Sirdec esta acción no se encuentra reflejada.\n-Para el 27/07/2022 se realiza último registro en Sirdec en el cual se da cuenta que se hicieron los cruces de perfiles genéticos, en el BPG, obtenidos de una hija.\n-Falta actualizar información en tabla Excel.\n- En SIRDEC sigue apareciendo la misma información que había sido registrada previamente. ", "Nuevos avances": "A través de la estrategia Contáctenos de la UBPD se estableció comunicación con la señora Encarnación granados en el mes de mayo de 2024 para informar que se estaba dando continuidad a las labores de búsqueda de sus seres queridos.\n\nPor otra parte, es de resaltar que se vienen adelantando acciones de búsqueda e investigación humanitaria en las veredas Buenavista, Marenao, Bellavista, Tigrana alta y Baja del municipio de Monterrey - Casanare, mediante la recepción de aportes de información, sin embargo, hasta la fecha ninguno de los aportes recopilados están asociados a las PDD en referencia.\n\nAsí mismo, se están llevando a cabo relacionaiento en cárcel con el fin de recibir aportes de informacón relacionados con la búsqueda de la PDD. ", "Plan de Trabajo": "Búsqueda de aportantes de información en cárceles que podrían conocer información sobre los hechos. Se realizó un primer encuentro en Mayo 31 de 2024, se realizó segundo encuentro el 2 de agosto de 2024 y se realizará otro encuentro el 28 de agosto de 2024.", "Responsable": "Ibeth Cáceres", "Plazo": "En ejecución"
+  },
+  {
+    "N°": 17, "PDD": "Rufino Granados Espinosa", "ID": 78, "Año": 2000, "Lugar Desaparición": "Monterrey", "PRB": "Casanare", "GITT RESPONSABLE": "Casanare", "Investigador/a": null, "Solicitud de búsqueda": "x", "Dialogo inicial": "x", "Toma de Muestra": "x", "Localicación": null, "Prospección": 1, "Identificación": null, "SIRDEC": "x", "# SIRDEC": "2010D006855", "EXPEDIENTE": "Si", "Carpeta": "78 RUFINO GRANADOS ESPINOSA", "Nota": "Prospección con Fiscalía - UBPD", "NOMBRES SERVIDOR/A BUSCADOR/A": "Marcela Granados Ballesteros", "GITT AL QUE PERTENECE EL SERVIRDOR/A": "Subdirección información", "CARGO": "Contratista", "CONTACTO": "3124438236", "CORREO ELECTRÓNICO": "mgranadosb@ubpdbusquedadesaparecidos.co", "PARENTESCO": "Prim@", "Primer Grado de Consanguinidad": "No", "LIDERA LA BÚSQUEDA": "Si", "OBSERVACIONES": "Falta actualizar esta tabla especialmente en relación con el(a) servidor@ de la UB . Igualmente sugerir que si hay más información sobre los hecho en que desapareció la persona se ingrese a Sirdec. ¿Qué hay con respecto a la prospección con la FGN que se registra aquí? Última acción Sirdecc 27/07/2022.                                                                                                             Marcela Granados: Se hizo diligencia de prospección en la vereda el Guichiri en Monterrey Casanare con el equipo de fiscalía con la Dra. Zulma del Grube, en las fechas del 23 al 27 de Agosto del presente año, se buscó a Rufino Granados Espinoza y a Gregorio Granados Galindo, por tal motivo solicitamos a la UBPD que se vuelvan a hacer las mesas técnicas con el fin de hacer trabajos articulados con fiscalía, las organizaciones y los familiares, donde se tenga encuentra la coordinación o contribución entre las entidades. La familia no ha tenido información alguna sobre la desaparición de Gregorio Granados Espinoza y María de los Ángeles Espinoza, queremos respuesta ya que se cumplieron 24 años de sus desapariciones. Desde hace más de un año la familia no ha tenido reunión con UBPD,", "Seguimiento": "C.C.: 7231864\n-Para el 27/07/2022 se realiza último registro en Sirdec en el cual se da cuenta que se hicieron los cruces de perfiles genéticos en el BPG, con el perfil genético obtenidos de una hermana. No tuvo hijo@s.\n-En la tabla Excel se da cuenta de una prospección con la FGN y UB, pero en Sirdec esta acción no se encuentra reflejada.\n-Falta actualizar información en tabla Excel.\n-Por módulo de cadáveres no hay ingresos en las instituciones con cadáveres asociados con el caso.\n- En SIRDEC sigue apareciendo la misma información que había sido registrada previamente. \n", "Nuevos avances": "A través de la estrategia Contáctenos de la UBPD se estableció comunicación con la señora Encarnación granados en el mes de mayo de 2024 para informar que se estaba dando continuidad a las labores de búsqueda de sus seres queridos.\n\nPor otra parte, es de resaltar que se vienen adelantando acciones de búsqueda e investigación humanitaria en las veredas Buenavista, Marenao, Bellavista, Tigrana Alta y Baja del municipio de Monterrey - Casanare, mediante la recepción de aportes de información, sin embargo, hasta la fecha ninguno de los aportes recopilados están asociados a las PDD en referencia.\n\nAsí mismo, se están llevando a cabo relacionaiento en cárcel con el fin de recibir aportes de informacón pertinentes a la búsqueda de la PDD. ", "Plan de Trabajo": "Búsqueda de aportantes de información en cárceles que podrían conocer información sobre los hechos. Se realizó un primer encuentro en Mayo 31 de 2024, se realizó segundo encuentro el 2 de agosto de 2024 y se realizará otro encuentro el 28 de agosto de 2024.", "Responsable": "Ibeth Cáceres", "Plazo": "En ejecución"
+  },
+  {
+    "N°": 18, "PDD": "Gregorio Granados Espinosa", "ID": 79, "Año": 2001, "Lugar Desaparición": "Monterrey", "PRB": "Casanare", "GITT RESPONSABLE": "Casanare", "Investigador/a": "Ibeth Cáceres", "Solicitud de búsqueda": 1, "Dialogo inicial": 1, "Toma de Muestra": 1, "Localicación": null, "Prospección": "x", "Identificación": null, "SIRDEC": "x", "# SIRDEC": "2010D006840", "EXPEDIENTE": "Si", "Carpeta": "79 GREGORIO GRANADOS ESPINOSA", "Nota": "Prospección con Fiscalía - UBPD", "NOMBRES SERVIDOR/A BUSCADOR/A": "Marcela Granados Ballesteros", "GITT AL QUE PERTENECE EL SERVIRDOR/A": "Subdirección información", "CARGO": "Contratista", "CONTACTO": "3124438236", "CORREO ELECTRÓNICO": "mgranadosb@ubpdbusquedadesaparecidos.co", "PARENTESCO": "Prim@", "Primer Grado de Consanguinidad": "No", "LIDERA LA BÚSQUEDA": "Si", "OBSERVACIONES": "Falta actualizar esta tabla especialmente en relación con el(a) servidor@ de la UB . Igualmente, sugerir que si hay más información sobre los hecho en que desapareció la persona se ingrese a Sirdec. Última acción Sirdecc 27/07/2022", "Seguimiento": "-C.C.: 6457167\n-Al consultar seguimiento en Sirdec no se registran acciones \n-En la tabla Excel se da cuenta de una prospección con la FGN y UB, pero en Sirdec esta acción no se encuentra reflejada.\n-Falta actualizar información en tabla Excel.\n-Por módulo de cadáveres no hay ingresos en las instituciones con cadáveres asociados con el caso.\n-Para el 27/07/2022 se realiza último registro en Sirdec en el cual se da cuenta que se hicieron los cruces de perfiles genéticos, en el BPG.\n- En SIRDEC sigue apareciendo la misma información que había sido registrada previamente. \n", "Nuevos avances": "A través de la estrategia Contáctenos de la UBPD se estableció comunicación con la señora Encarnación granados en el mes de mayo de 2024 para informar que se estaba dando continuidad a las labores de búsqueda de sus seres queridos.\n\nPor otra parte, es de resaltar que se vienen adelantando acciones de búsqueda e investigación humanitaria en las veredas Buenavista, Marenao, Bellavista, Tigrana alta y Baja del municipio de Monterrey - Casanare, mediante la recepción de aportes de información, sin embargo, hasta la fecha ninguno de los aportes recopilados están asociados a las PDD en referencia.\n\nAsí mismo, se están llevando a cabo relacionaiento en cárcel con el fin de recibir aportes de informacón relacionados con la búsqueda de la PDD. ", "Plan de Trabajo": "Búsqueda de aportantes de información en cárceles que podrían conocer información sobre los hechos. Se realizó un primer encuentro en Mayo 31 de 2024, se realizó segundo encuentro el 2 de agosto de 2024 y se realizará otro encuentro el 28 de agosto de 2024.", "Responsable": "Ibeth Cáceres", "Plazo": "En ejecución"
+  },
+  {
+    "N°": 19, "PDD": "María de los Ángeles Espinosa", "ID": 86, "Año": 2001, "Lugar Desaparición": "Monterrey", "PRB": "Casanare", "GITT RESPONSABLE": "Casanare", "Investigador/a": "Ibeth Cáceres", "Solicitud de búsqueda": 1, "Dialogo inicial": 1, "Toma de Muestra": 1, "Localicación": null, "Prospección": "x", "Identificación": null, "SIRDEC": "x", "# SIRDEC": "2010D006878", "EXPEDIENTE": "Si", "Carpeta": "86 MARIA DE LOS ANGELES ESPINOZA", "Nota": "Prospección con Fiscalía - UBPD", "NOMBRES SERVIDOR/A BUSCADOR/A": "Marcela Granados Ballesteros", "GITT AL QUE PERTENECE EL SERVIRDOR/A": "Subdirección información", "CARGO": "Contratista", "CONTACTO": "3124438236", "CORREO ELECTRÓNICO": "mgranadosb@ubpdbusquedadesaparecidos.co", "PARENTESCO": "Sobrina Política", "Primer Grado de Consanguinidad": "No", "LIDERA LA BÚSQUEDA": "Si", "OBSERVACIONES": "No se puede ingresar a Sirdec por módulo de cdesaparecidos, quizás no se haya registardo o falta un apellido o quedó mal dijitado. Se requiere actualizar esta tabla.", "Seguimiento": "-C.C.: ¿?\n-Al parecer no se registró el caso en Sirdec, o si se hizo y quedó con un error en la digitación.\n-Se requiere actualizar tabla Excel\n- En SIRDEC sigue apareciendo la misma información que había sido registrada previamente. ", "Nuevos avances": "A través de la estrategia Contáctenos de la UBPD se estableció comunicación con la señora Encarnación granados en el mes de mayo de 2024 para informar que se estaba dando continuidad a las labores de búsqueda de sus seres queridos.\n\nPor otra parte, es de resaltar que se vienen adelantando acciones de búsqueda e investigación humanitaria en las veredas Buenavista, Marenao, Bellavista, Tigrana alta y Baja del municipio de Monterrey - Casanare, mediante la recepción de aportes de información, sin embargo, hasta la fecha ninguno de los aportes recopilados están asociados a las PDD en referencia.\n\nAsí mismo, se están llevando a cabo relacionaiento en cárcel con el fin de recibir aportes de informacón relacionados con la búsqueda de la PDD. ", "Plan de Trabajo": "Búsqueda de aportantes de información en cárceles que podrían conocer información sobre los hechos. Se realizó un primer encuentro en Mayo 31 de 2024, se realizó segundo encuentro el 2 de agosto de 2024 y se realizará otro encuentro el 28 de agosto de 2024.", "Responsable": "Ibeth Cáceres", "Plazo": "En ejecución"
+  },
+  {
+    "N°": 20, "PDD": "Oliva Sáenz", "ID": 197931, "Año": 1948, "Lugar Desaparición": "Bogotá", "PRB": "Bogotá", "GITT RESPONSABLE": "Bogotá", "Investigador/a": "Alex Alberto Moreno Perez asignar\nLuis Alfonso Burgos Gonzalez", "Solicitud de búsqueda": 1, "Dialogo inicial": 1, "Toma de Muestra": 1, "Localicación": null, "Prospección": null, "Identificación": null, "SIRDEC": "x", "# SIRDEC": "2024D002037", "EXPEDIENTE": "Si", "Carpeta": "197931 OLIVA SAENZ ", "Nota": "Muestra genética de referencia tomada GITT Bogotá", "NOMBRES SERVIDOR/A BUSCADOR/A": "Karen Quintero Pardo", "GITT AL QUE PERTENECE EL SERVIRDOR/A": "Regional Centro", "CARGO": "Experta 5", "CONTACTO": "3166300215", "CORREO ELECTRÓNICO": "kquinterop@busquedadesaparecidos.gov.co", "PARENTESCO": "Ti@", "Primer Grado de Consanguinidad": "No", "LIDERA LA BÚSQUEDA": "Si", "OBSERVACIONES": "Cuenta con muestra genética de referencia", "Seguimiento": "-C.C.: Sin, la pdd era menor de edad cuando se tuvo el último contacto\n-Falta mucha información con respecto a la PD. En seguimiento del caso no hay información registrada en Sirdec, ej. no se explicita si se tomó muestra biológica. \n", "Nuevos avances": null, "Plan de Trabajo": "1. Solicitar consolidación de documentos sobre enfoque diferencial adulto mayor. Los alcances de esta ruta, permitirán a las PQB comprender los alcances del proceso y en ese sentido el manejo de expectativas frente a los posibles resultados o posibles exigencias a la UBPD: \n2. Identificar estrategias adelantadas por la UBPD para llamar/convocar a PQBs de casos muy antiguos y campañas de información sobre el mandato, específicamente sobre la temporalidad de los casos más antiguos. ", "Responsable": null, "Plazo": null
+  },
+  {
+    "N°": 21, "PDD": "Yenny Maud Quintero Giraldo", "ID": 2752, "Año": 1988, "Lugar Desaparición": "Tuluá Valle.", "PRB": "Oriente del Valle", "GITT RESPONSABLE": "Valle del Cauca", "Investigador/a": "Marcela Rodríguez Guzmán", "Solicitud de búsqueda": 1, "Dialogo inicial": 1, "Toma de Muestra": 1, "Localicación": null, "Prospección": null, "Identificación": null, "SIRDEC": "x", "# SIRDEC": "2022D015746", "EXPEDIENTE": "Si", "Carpeta": "2752 JENNY MAUD QUINTERO GIRALDO", "Nota": null, "NOMBRES SERVIDOR/A BUSCADOR/A": "Yolima Ibeth Quintero Giraldo", "GITT AL QUE PERTENECE EL SERVIRDOR/A": "Antioquia", "CARGO": "Experto Tecnico 04", "CONTACTO": "3127918441", "CORREO ELECTRÓNICO": "yquinterog@ubpdbusquedadesaparecidos.co", "PARENTESCO": "Herman@", "Primer Grado de Consanguinidad": "Si", "LIDERA LA BÚSQUEDA": "Si", "OBSERVACIONES": "En cuanto al seguimento realizado en Sirdec solo se referencia que es caso migrado de la UB.", "Seguimiento": "-C.C.: No\n-Se debe tratar de recabar más información relacionada con los hechos pues es muy poco lo que se encuentra en Sirdec, en seguimiento se encuentra el 08/08/2022 que es un caso migrado de la UBPD.\n", "Nuevos avances": null, "Plan de Trabajo": null, "Responsable": null, "Plazo": null
+  },
+  {
+    "N°": 22, "PDD": "Habid Gildardo Quintero Giraldo", "ID": 3946, "Año": 1988, "Lugar Desaparición": "Tuluá Valle", "PRB": "Oriente del Valle", "GITT RESPONSABLE": "Valle del Cauca", "Investigador/a": "Marcela Rodríguez Guzmán", "Solicitud de búsqueda": 1, "Dialogo inicial": 1, "Toma de Muestra": 1, "Localicación": null, "Prospección": null, "Identificación": null, "SIRDEC": "x", "# SIRDEC": "2009D008231", "EXPEDIENTE": "Si", "Carpeta": "3946 HABID GILDARDO QUINTERO GIRALDO", "Nota": null, "NOMBRES SERVIDOR/A BUSCADOR/A": "Yolima Ibeth Quintero Giraldo", "GITT AL QUE PERTENECE EL SERVIRDOR/A": "Antioquia", "CARGO": "Experto Tecnico 04", "CONTACTO": "3127918441", "CORREO ELECTRÓNICO": "yquinterog@ubpdbusquedadesaparecidos.co", "PARENTESCO": "Herman@", "Primer Grado de Consanguinidad": "Si", "LIDERA LA BÚSQUEDA": "Si", "OBSERVACIONES": "El 9/04/2024 se registraron en Sirdec las úllmas acciones de la investigación.", "Seguimiento": "-C.C.: 71709008\n-Última acción registrada en Sirdec fue el 09/04/2024.\n", "Nuevos avances": null, "Plan de Trabajo": null, "Responsable": null, "Plazo": null
+  },
+  {
+    "N°": 23, "PDD": "Ángel José Quintero Mesa", "ID": 5990, "Año": 2000, "Lugar Desaparición": "Medellín", "PRB": "Valle de Aburrá", "GITT RESPONSABLE": "Antioquía", "Investigador/a": "Diana Mercedes Gutierrez\n Jhon Fernando Mesa \n Claudia Lucía Bañol", "Solicitud de búsqueda": 1, "Dialogo inicial": 1, "Toma de Muestra": 1, "Localicación": null, "Prospección": null, "Identificación": null, "SIRDEC": "x", "# SIRDEC": "2009D002549", "EXPEDIENTE": "Si", "Carpeta": "5990 ANGEL JOSE QUINTERO MESA", "Nota": "La señora Blanca Libia Úsuga Higuita vive en Suecia y se encuentra disponible para toma de muestra de ADN, su esposo es el señor Ángel Quintero Meza (PDD) de esta relación nacieron 5 hijos quienes vivían en Colombia en compañía de sus padres para el momento de la desaparición del señor Ángel. La mayor es Adriana Quintero Úsuga (PB) de 41 años y quien lidera la búsqueda desde Suecia de sus familiares dados por desaparecidos; se le tomo muestra de ADN en INMLCF en Bogotá el 14 de enero de 2016. Los cuatro hijos menores son Erika de 37 años, Deisy de 33 años, Mónica de 31 años y el menor es Arlinson Quintero Úsuga de 28 años, todos residen en Suecia y se encuentran disponibles para toma de muestra biológica. ", "NOMBRES SERVIDOR/A BUSCADOR/A": "Yolima Ibeth Quintero Giraldo", "GITT AL QUE PERTENECE EL SERVIRDOR/A": "Antioquia", "CARGO": "Experto Tecnico 05", "CONTACTO": "3127918441", "CORREO ELECTRÓNICO": "yquinterog@ubpdbusquedadesaparecidos.co", "PARENTESCO": "Amig@", "Primer Grado de Consanguinidad": "No", "LIDERA LA BÚSQUEDA": "No", "OBSERVACIONES": "Se requiere actualizar la información en esta tabla incluyendo la relacionada con el(a) servidor@ de la UB . Constatar si la persona tenía otro nobre y apellido para saber si existe un reporte Sirdec.", "Seguimiento": "-C.C. :\n-No hay registro Sirdec, en esta plataforma se encuentran varios Miguel Ángel Quintero o José Ángel u otros nombres, también mirar si hay otro apellido. O simplemente el caso no se ha registrado.\nRevisión de casos de 15/07/2024\n", "Nuevos avances": null, "Plan de Trabajo": null, "Responsable": null, "Plazo": null
+  },
+  {
+    "N°": 24, "PDD": "Claudia Patricia Monsalve Pulgarin", "ID": 4345, "Año": 2000, "Lugar Desaparición": "Medellín", "PRB": "Valle de Aburrá", "GITT RESPONSABLE": "Antioquía", "Investigador/a": "Diana Mercedes Gutierrez\n Jhon Fernando Mesa \n Claudia Lucía Bañol", "Solicitud de búsqueda": 1, "Dialogo inicial": 1, "Toma de Muestra": 1, "Localicación": null, "Prospección": null, "Identificación": null, "SIRDEC": "X", "# SIRDEC": "2009D003350.", "EXPEDIENTE": "Si", "Carpeta": "4345 CLAUDIA PATRICIA MONSALVE PULGARIN", "Nota": null, "NOMBRES SERVIDOR/A BUSCADOR/A": "Yolima Ibeth Quintero Giraldo", "GITT AL QUE PERTENECE EL SERVIRDOR/A": "Antioquia", "CARGO": "Experto Tecnico 06", "CONTACTO": "3127918441", "CORREO ELECTRÓNICO": "yquinterog@ubpdbusquedadesaparecidos.co", "PARENTESCO": "Amig@", "Primer Grado de Consanguinidad": "No", "LIDERA LA BÚSQUEDA": "No", "OBSERVACIONES": null, "Seguimiento": "-C.C.: ¿?\n-¿No haya otro nombre y apellido?\n-No existe registro Sirdec\n.Primo\n-C.C. \n-No hay nada de información, la cual se requiere en su totalidad \n", "Nuevos avances": null, "Plan de Trabajo": null, "Responsable": null, "Plazo": null
+  },
+  {
+    "N°": 25, "PDD": "Fabio Bolívar López", "ID": 645, "Año": 1999, "Lugar Desaparición": "Puente San Juan de Villalobos en la vía Mocoa - Pitalito", "PRB": "PRB Valle del Patia y Macizo Colombiano", "GITT RESPONSABLE": "Cauca", "Investigador/a": "Juan Sebastian Lozano \nMaira Alexandra Suarez", "Solicitud de búsqueda": 1, "Dialogo inicial": 1, "Toma de Muestra": 1, "Localicación": null, "Prospección": null, "Identificación": null, "SIRDEC": "x", "# SIRDEC": "2018D010116", "EXPEDIENTE": "Si", "Carpeta": "645 FABIO BOLIVAR LOPEZ", "Nota": "Se está trabajando en las mesas del frente 13, hasta la fecha no se tiene información precisa", "NOMBRES SERVIDOR/A BUSCADOR/A": "Ruby Liliana Reyes Pérez", "GITT AL QUE PERTENECE EL SERVIRDOR/A": "Putumayo", "CARGO": "Experto Técnico 04", "CONTACTO": "3122840479", "CORREO ELECTRÓNICO": "rreyesp@unidadbusqueda.gov.co", "PARENTESCO": "tío político", "Primer Grado de Consanguinidad": "No", "LIDERA LA BÚSQUEDA": "No", "OBSERVACIONES": "La investigación la lleva el GITT Cauca en coordinación con el GITT Putumayo. Hay que indagar si hay más acciones realizadas después de la toma de muestras dereferencia a familiares y de subir al BPG dichos perfiles a fines de diciembre de 2022, pues no hay información más reciente en Sirdec.", "Seguimiento": "-C.C.: 14985977\n-Última acción registrada en Sirdec el 12/11/2022, dando cuenta de haber subido al BPG los perfiles genéticos. Al parecer no hubo coincidencias pues no se encuentra nada al respecto en la plataforma. Por módulo de cadáveres no hay cuerpos ingresados al IML orientado a la identidad de la PD\n", "Nuevos avances": "Se trabajó en una jornada con firmantes del Frente 13 de las antiguas FARC - EP:\n\"\"No se identifica información. Sin embargo, lxs asistentes mencionaron que no era lógica la información aportada, pues no se obligaba a una persona a ingresar y más, cuando eran mayores de 30 años. Lo que sí pudo suceder es que fueran posiblemente retenidos para ser  ajusticiados, pero al respecto no se tiene información.\"\"\n\nInformación aportada por el GITT Cauca", "Plan de Trabajo": null, "Responsable": "Maira Alexandra Suarez", "Plazo": null
+  },
+  {
+    "N°": 26, "PDD": "Juan Gabino Portilla Cerón", "ID": 169556, "Año": 1988, "Lugar Desaparición": "Tumaco y San José – Nariño", "PRB": "Nariño", "GITT RESPONSABLE": "Pasto", "Investigador/a": "Mario Moreno Muñoz - Satélite Tumaco", "Solicitud de búsqueda": 1, "Dialogo inicial": 1, "Toma de Muestra": 1, "Localicación": null, "Prospección": null, "Identificación": null, "SIRDEC": "x", "# SIRDEC": "2013D002525", "EXPEDIENTE": "Si", "Carpeta": "169556 JUAN GABINO PORTILLA CERÓN", "Nota": null, "NOMBRES SERVIDOR/A BUSCADOR/A": "Caren Cortés Portilla", "GITT AL QUE PERTENECE EL SERVIRDOR/A": "Putumayo\n\nSatélite Tumaco", "CARGO": "Experto Técnico 04", "CONTACTO": "3183849443\n\n\n3168714135", "CORREO ELECTRÓNICO": "ccortesp@unidadbusqueda.gov.co\n\nmmorenom@unidadbusqueda.gov.co", "PARENTESCO": "Ti@", "Primer Grado de Consanguinidad": "No", "LIDERA LA BÚSQUEDA": "No", "OBSERVACIONES": "Si, se realizó la localización de posible sitio de inhumación en marzo de 2014?. Después de este año se han realizado más acciones, si la respuesta es sí, porque no se han registrado en Sirdec?", "Seguimiento": "-C.C.: 91474730\nAl parecer en marzo de 2014 La Fiscalía 180 Seccional De La Subunidad De Apoyo A La UJyP de Pasto-Nariño, iba a corroborar un posible lugar de inhumación informado por el postulado Víctor Adolfo Trujillo Castro Alias \"El Poli\" ex Integrante Del Bloque Libertadores Del Sur De Las AUC. Pero no se dice si se realizó tal diligencia, o no y si, aparte de ello en estos últimos 10 años ha habido más acciones con respecto a la búsqueda de esta persona. Por MC no hay registros de posible ingreso de un cuerpo orientado con la PD.\n", "Nuevos avances": "Diligenciamiento de EEPB.\nSe creó el ID de la PQB en Busquemos\nDe acuerdo a la Registraduría, el Número de Identificación (Nuip/Nip/Cédula de Identidad) es:\n74091155668\nSerie registro civil: 0019880130\nRevisión en VIVANTO PQB hermana de la PDD\nRevisión datos PDD en SICOMAIN\nRevisión datos PDD INPEC\nRevisión datos PDD Consulta Convenio 001 de 2010 Consultas en los módulos cadáveres ingresados y registro desaparecidos \n", "Plan de Trabajo": "- Adelantar acciones de solicitud de información y documentos a la Fiscalía 180 seccional de la Subunidad de Apoyo a la UJyP de Pasto-Nariño\n- Revisar archivos CNMH, acerca de de la dirección de Acuerdos de la verdad y aportar información de posibles lugares de nhumación donde podría encontrarse la PDD.\n- Revisar los expedientes de Fiscalía y Acuerdos, ya que aún no es claro el lugar en el que se encuentra el posible cuerpo de la PDD. No sólo existen cementerios en Carcuel, vereda cercana al río y a la cabecera de Barbacoas, sino  en otras veredas.", "Responsable": null, "Plazo": null
+  },
+  {
+    "N°": 27, "PDD": "Luis Enrique Portilla Cerón", "ID": 169555, "Año": 2004, "Lugar Desaparición": "San Gabriel Cauca", "PRB": "Cauca", "GITT RESPONSABLE": "Cauca", "Investigador/a": "Juan Sebastian Lozano \nMario Moreno Muñoz", "Solicitud de búsqueda": 1, "Dialogo inicial": 1, "Toma de Muestra": 1, "Localicación": null, "Prospección": null, "Identificación": null, "SIRDEC": "x", "# SIRDEC": "2018D002223", "EXPEDIENTE": "Si", "Carpeta": "169555 LUIS ENRIQUE PORTILLA CERÓN", "Nota": null, "NOMBRES SERVIDOR/A BUSCADOR/A": "Caren Cortés Portilla", "GITT AL QUE PERTENECE EL SERVIRDOR/A": "Putumayo\n\nSatélite Tumaco", "CARGO": "Experto Técnico 04", "CONTACTO": "3183849443\n\n3168714135", "CORREO ELECTRÓNICO": "ccortesp@unidadbusqueda.gov.co\n\nmmorenom@unidadbusqueda.gov.co", "PARENTESCO": "Ti@", "Primer Grado de Consanguinidad": "No", "LIDERA LA BÚSQUEDA": "No", "OBSERVACIONES": "También tiene este otro registro de Sirdec 2017D008464 y se encuentra la siguiente información que debemos verificar: Paciente registrado(a) como fallecido en SIRDEC, radicado necropsia: 2007010176001000834, Nombres del fallecido:JHON JAIRO MAÑUNGA GARCIA, Documento de identidad: CÉDULA DE CIUDADANÍA, numero: 000000", "Seguimiento": "-C.C.: 18124297\n-No hay ninguna información en seguimiento del caso, es decir no se sabe si desde enero de 2007 donde se realiza el reporte a Sirdec ha habido algunas acciones o de los familiares o del Estado con respecto al caso. Tiene dos registros de Sirdec 2018D002223 y este 2017D00846\n", "Nuevos avances": "De acuerdo a la PQB: Él se juntó con una muchacha, madre de su único hijo, el niño tenía cerca de dos años cuando él decidió marcharse con la guerrilla, y hubo un tiempo en que la guerrilla lo secuestro como por 15 días a mi hno., como represalia por no haber colaborado con ellos en enseres y alimentos. Esto fue en San Gabriel Cauca, km 18, entrada de Santa Martha. El mismo se entregó, por no sentirse amenazado. ", "Plan de Trabajo": null, "Responsable": null, "Plazo": null
+  },
+  {
+    "N°": 28, "PDD": "Guillermo Cordón Herrera", "ID": 176, "Año": 2003, "Lugar Desaparición": "Chiribiquete", "PRB": "Caquetá Norte", "GITT RESPONSABLE": "Caquetá", "Investigador/a": "Cindy Dayan González", "Solicitud de búsqueda": 1, "Dialogo inicial": 1, "Toma de Muestra": 1, "Localicación": 1, "Prospección": 1, "Identificación": "12108790", "SIRDEC": "x", "# SIRDEC": "2013D002090", "EXPEDIENTE": "Si", "Carpeta": "GUILLERMO CORDON HERRERA", "Nota": "En julio 04 de 2024,  se realiza la prospección en Chiribiquete", "NOMBRES SERVIDOR/A BUSCADOR/A": "Angela Patricia Cordón Quintero", "GITT AL QUE PERTENECE EL SERVIRDOR/A": "Huila ", "CARGO": "Experto Técnico 04", "CONTACTO": "3108664787", "CORREO ELECTRÓNICO": "acordonq@unidadbusqueda.gov.co", "PARENTESCO": "Papá", "Primer Grado de Consanguinidad": "Si", "LIDERA LA BÚSQUEDA": "Si", "OBSERVACIONES": null, "Seguimiento": "-C.C.: 12108790\n-En Sirdec hay muy, pero muy poca información sobre los hechos de desaparición.\n-Actualizar esta tabla y procurar ampliar información en Sirdec. Esperar la información relacionada con la prospección realizada, en la cual no se ubicó el sitio de inhumación, para saber futuras acciones.\n", "Nuevos avances": null, "Plan de Trabajo": null, "Responsable": null, "Plazo": null
+  },
+  {
+    "N°": 29, "PDD": "Reynaldo Cordón Herrera ", "ID": 3396, "Año": 2003, "Lugar Desaparición": "Chiribiquete", "PRB": "Caquetá Norte", "GITT RESPONSABLE": "Caquetá", "Investigador/a": "Cindy Dayan González", "Solicitud de búsqueda": 1, "Dialogo inicial": 1, "Toma de Muestra": 1, "Localicación": 1, "Prospección": 1, "Identificación": "12115067", "SIRDEC": "x", "# SIRDEC": "2013D002092", "EXPEDIENTE": "Si", "Carpeta": "175 REYNALDO CORDON HERRERA", "Nota": "En julio 04 de 2024,  se realiza la prospección en Chiribiquete", "NOMBRES SERVIDOR/A BUSCADOR/A": "Angela Patricia Cordón Quintero", "GITT AL QUE PERTENECE EL SERVIRDOR/A": "Huila ", "CARGO": "Experto Técnico 04", "CONTACTO": "3108664787", "CORREO ELECTRÓNICO": "acordonq@unidadbusqueda.gov.co", "PARENTESCO": "Ti@", "Primer Grado de Consanguinidad": "No", "LIDERA LA BÚSQUEDA": "Si", "OBSERVACIONES": null, "Seguimiento": null, "Nuevos avances": null, "Plan de Trabajo": null, "Responsable": null, "Plazo": null
+  },
+  {
+    "N°": 30, "PDD": "Socorro Chanchi Becerra", "ID": 6610, "Año": 1995, "Lugar Desaparición": "Popayan", "PRB": "Cauca", "GITT RESPONSABLE": "Cauca", "Investigador/a": "Harlen Beltran\nYaid bolaños ", "Solicitud de búsqueda": 1, "Dialogo inicial": 1, "Toma de Muestra": 1, "Localicación": null, "Prospección": null, "Identificación": "27355263", "SIRDEC": "x", "# SIRDEC": "2021D007903", "EXPEDIENTE": "Si", "Carpeta": "6610 SOCORRO CHANCHI BECERRA", "Nota": null, "NOMBRES SERVIDOR/A BUSCADOR/A": "Piero Rafael Herrera Chanchi", "GITT AL QUE PERTENECE EL SERVIRDOR/A": "Putumayo", "CARGO": "Experto Técnico 04", "CONTACTO": "3152277539", "CORREO ELECTRÓNICO": "pherrerac@unidadbusqueda.gov.co", "PARENTESCO": "Ti@", "Primer Grado de Consanguinidad": "No", "LIDERA LA BÚSQUEDA": "No", "OBSERVACIONES": "Solicitud se trasladó al GITT Cauca, pendiente toma de muestra a la hija de la PDD quien vive en la ciudad de Cali.", "Seguimiento": "Pendiente contactar y coordinar toma de muestra biológica con la hija de la PDD residente en la ciudad de Cali Valle del Cauca, Camila Eliana Lemos Chanchi. No de celular: 3127729373.", "Nuevos avances": "La hija de la PDD se encuentra en Mocoa, Putumayo. A paritir del 15 de diciembre estará en la ciudad de Cali. Estamos en contacto con la hija de la PDD.", "Plan de Trabajo": null, "Responsable": null, "Plazo": null
+  },
+  {
+    "N°": 31, "PDD": "Orlando Zuin Chanchi", "ID": 5385, "Año": 1989, "Lugar Desaparición": "Vereda Medio Afán - Mocoa", "PRB": "Medio Putumayo", "GITT RESPONSABLE": "Putumayo", "Investigador/a": "Caren Cortes", "Solicitud de búsqueda": 1, "Dialogo inicial": 1, "Toma de Muestra": 1, "Localicación": null, "Prospección": null, "Identificación": "18124935", "SIRDEC": "x", "# SIRDEC": "2021D007919", "EXPEDIENTE": "Si", "Carpeta": "5385 ORLANDO ZUIN CHANCHI", "Nota": null, "NOMBRES SERVIDOR/A BUSCADOR/A": "Piero Rafael Herrera Chanchi", "GITT AL QUE PERTENECE EL SERVIRDOR/A": "Putumayo", "CARGO": "Experto Técnico 04", "CONTACTO": "3152277539", "CORREO ELECTRÓNICO": "pherrerac@unidadbusqueda.gov.co", "PARENTESCO": "Prim@", "Primer Grado de Consanguinidad": "No", "LIDERA LA BÚSQUEDA": "No", "OBSERVACIONES": null, "Seguimiento": "La solicitud se ha presentado en distintos espacios de recolección de información con firmantes de paz, sin obtener mayores resultados.", "Nuevos avances": "La ficha del caso se expuso en el encuentro con firmantes de paz quienes hicieron parte en su momento de los Frentes 32, 48 y 49 realizado en el mes de julio del 2024 en San Agustín Huila, pero la información referida sobre la PDD por parte de un firmante participante del encuentro, no era coincidente con las características físicas de la PDD señaladas por la PQB, es decir, al parecer la persona que refirieron correspondia a otra persona distinta a la PDD.", "Plan de Trabajo": "- Continuar con la debida presentación de casos (fichas) en mesas de trabajo o distintos espacios de articulación y coordinación para la búsqueda con firmantes de paz, antiguos militantes de guerrillas de FARC-EP de distintos frentes que puedan aportar o ampliar información suficiente para determinar el posible paradero de la PDD.\n- \tLa descripción general del caso, la cual se haya consignada en la referida ficha, deberá compartirse con los documentadores de la Corporación Humanitaria Reencuentros CHR residentes en el ETCR la Carmelita municipio de Puerto Asís Putumayo, a fin de impulsar la investigación humanitaria y extrajudicial con los y las comparecientes ante la JEP y demás población excombatiente dispersa en el departamento del Putumayo, acción que se pretende articular con documentadores de la referida corporación en los departamentos de Huila, Caquetá y Cauca (según corresponda).", "Responsable": "Caren Cortes", "Plazo": "En ejecución"
+  },
+  {
+    "N°": 32, "PDD": "Gerardo Amir Chavez Narvaez", "ID": 6675, "Año": 1988, "Lugar Desaparición": "Puente Caquetá Vía Mocoa Pitalito, km 20.", "PRB": "Medio Putumayo", "GITT RESPONSABLE": "Putumayo", "Investigador/a": "Piero Herrera", "Solicitud de búsqueda": 1, "Dialogo inicial": 1, "Toma de Muestra": 1, "Localicación": null, "Prospección": null, "Identificación": "18125081", "SIRDEC": "x", "# SIRDEC": "2012D005370", "EXPEDIENTE": "Si", "Carpeta": "https://drive.google.com/drive/folders/17tz8HK3jaehbPksEABIRkMz_QHrMctX9", "Nota": null, "NOMBRES SERVIDOR/A BUSCADOR/A": "David Fernando Narváez Gómez", "GITT AL QUE PERTENECE EL SERVIRDOR/A": "Putumayo", "CARGO": "Experto Técnico 05", "CONTACTO": "3143341885", "CORREO ELECTRÓNICO": "dnarvaezg@unidadbusqueda.gov.co", "PARENTESCO": "Prim@", "Primer Grado de Consanguinidad": "No", "LIDERA LA BÚSQUEDA": "No", "OBSERVACIONES": null, "Seguimiento": "La solicitud se ha presentado en distintos espacios de recolección de información con firmantes de paz, sin obtener mayores resultados.", "Nuevos avances": "Ninguno", "Plan de Trabajo": "- Continuar con la debida presentación de casos (fichas) en mesas de trabajo o distintos espacios de articulación y coordinación para la búsqueda con firmantes de paz, antiguos militantes de guerrillas de FARC-EP F-13, pero también de otros frentes que quizá puedan aportar información clave para determinar el posible paradero de la PDD.\n-        La descripción general del caso, la cual se haya consignada en la referida ficha, deberá compartirse con los documentadores de la Corporación Humanitaria Reencuentros CHR residentes en el ETCR la Carmelita municipio de Puerto Asís Putumayo, a fin de impulsar la investigación humanitaria y extrajudicial con los y las comparecientes ante la JEP y demás población excombatiente dispersa en el departamento del Putumayo, acción que se pretende articular con documentadores de la referida corporación en los departamentos de Huila, Caquetá y Cauca.", "Responsable": "Piero Herrera", "Plazo": "En ejecución"
+  },
+  {
+    "N°": 33, "PDD": "Leonardo Francisco Chavez Narvaez", "ID": 6676, "Año": 1988, "Lugar Desaparición": "Puente Caquetá Vía Mocoa Pitalito, km 20.", "PRB": "Medio Putumayo", "GITT RESPONSABLE": "Putumayo", "Investigador/a": "Piero Herrera", "Solicitud de búsqueda": "x", "Dialogo inicial": "x", "Toma de Muestra": "x", "Localicación": null, "Prospección": null, "Identificación": "18124806", "SIRDEC": "x", "# SIRDEC": "2012D005352", "EXPEDIENTE": "Si", "Carpeta": "6676 LEONARDO FRANCISCO CHAVES NARVAEZ", "Nota": null, "NOMBRES SERVIDOR/A BUSCADOR/A": "David Fernando Narváez Gómez", "GITT AL QUE PERTENECE EL SERVIRDOR/A": "Putumayo", "CARGO": "Experto Técnico 05", "CONTACTO": "3143341885", "CORREO ELECTRÓNICO": "dnarvaezg@unidadbusqueda.gov.co", "PARENTESCO": "Prim@", "Primer Grado de Consanguinidad": "No", "LIDERA LA BÚSQUEDA": "No", "OBSERVACIONES": null, "Seguimiento": "La solicitud se ha presentado en distintos espacios de recolección de información con firmantes de paz, sin obtener mayores resultados.", "Nuevos avances": "Ninguno", "Plan de Trabajo": "- Continuar con la debida presentación de casos (fichas) en mesas de trabajo o distintos espacios de articulación y coordinación para la búsqueda con firmantes de paz, antiguos militantes de guerrillas de FARC-EP F-13, pero también de otros frentes que quizá puedan aportar información clave para determinar el posible paradero de la PDD.\n-        La descripción general del caso, la cual se haya consignada en la referida ficha, deberá compartirse con los documentadores de la Corporación Humanitaria Reencuentros CHR residentes en el ETCR la Carmelita municipio de Puerto Asís Putumayo, a fin de impulsar la investigación humanitaria y extrajudicial con los y las comparecientes ante la JEP y demás población excombatiente dispersa en el departamento del Putumayo, acción que se pretende articular con documentadores de la referida corporación en los departamentos de Huila, Caquetá y Cauca.", "Responsable": "Piero Herrera", "Plazo": "En ejecución"
+  },
+  {
+    "N°": 34, "PDD": "Luis Miguel García Taborda", "ID": 202897, "Año": 2001, "Lugar Desaparición": "Sincelejo", "PRB": "Sabana San Jorge y Mojana", "GITT RESPONSABLE": "Sucre", "Investigador/a": "Vicente Gutiérrez Ricardo", "Solicitud de búsqueda": 1, "Dialogo inicial": 1, "Toma de Muestra": 1, "Localicación": null, "Prospección": null, "Identificación": "845179", "SIRDEC": "x", "# SIRDEC": "\t2024D008722", "EXPEDIENTE": "Si", "Carpeta": "202897 LUIS MIGUEL GARCIA TABORDA", "Nota": "Yomaira es la persona buscadora, su mamá es hermana media por parte de mamá del señor Luis Miguel, parece que un sobrino del señor puso la denuncia ante la FGN. no se tienen noticias de sus hijos, parece ser que tuvo 2 hijas, pero no se tiene razon de ellas o de su madre.", "NOMBRES SERVIDOR/A BUSCADOR/A": "Yomaira Edith Herrera Rada", "GITT AL QUE PERTENECE EL SERVIRDOR/A": "Sucre", "CARGO": "Analista Técnico 01 - Apoyo Administrativo", "CONTACTO": "3232217315", "CORREO ELECTRÓNICO": "yherrerar@unidadbusqueda.gov.co", "PARENTESCO": "Ti@", "Primer Grado de Consanguinidad": "No", "LIDERA LA BÚSQUEDA": "Si", "OBSERVACIONES": "Rastrear el numero de cédula con el nombre de la mamá (Andrea Taborda) y el papá de Luis Miguel (Sin información)", "Seguimiento": "En relación con la búsqueda del Sr Luis Miguel García Taborda, he estado consultando el Sirdec en el módulo de desaparecidos y aún no está reportado. Igualmente estuve buscando  a ver si al IMLCF  ha ingresado algún cuerpo con esa orientación y tampoco. Algo que dificulta la consulta en Sirdec es que no hay documento de identidad del Sr. Luis Miguel, en la ficha no especifica si nunca se ceduló, si fue así, se podía dar el número de Registro Civil de Nacimiento. Lo importante es que es hay que informarle a la familia que esta información es relevante para cuando se haga el reporte a Sirdec y se tome la muestra biológica con fines de identificación.\nSería también bueno que cuando se haga el reporte a Sirdec Yolima pueda aportar, una foto, y quizás información que no haya aportado a la UB.\nDe momento esto es lo que podemos decir de la información sobre el caso que relaciona al Sr Luis Miguel García Taborda.", "Nuevos avances": null, "Plan de Trabajo": null, "Responsable": null, "Plazo": null
+  },
+  {
+    "N°": 35, "PDD": "José Diego Vargas Melecio", "ID": 1671, "Año": 2002, "Lugar Desaparición": "San Rafael de Lebrija", "PRB": "Área Metropolitana de Bucaramanga y Soto Norte", "GITT RESPONSABLE": "Santander", "Investigador/a": "Ana María Salamanca", "Solicitud de búsqueda": 1, "Dialogo inicial": 1, "Toma de Muestra": 1, "Localicación": 1, "Prospección": null, "Identificación": "10692452", "SIRDEC": "x", "# SIRDEC": "2008D011508", "EXPEDIENTE": "Si", "Carpeta": "1671 JOSE DIEGO VARGAS MELECIO", "Nota": null, "NOMBRES SERVIDOR/A BUSCADOR/A": "Katerine Vargas Mejia", "GITT AL QUE PERTENECE EL SERVIRDOR/A": "Huila ", "CARGO": "Contratista", "CONTACTO": "3164934525", "CORREO ELECTRÓNICO": "kvargasm@unidadbusqueda.gov.co ", "PARENTESCO": "Papá", "Primer Grado de Consanguinidad": "Si", "LIDERA LA BÚSQUEDA": "Si", "OBSERVACIONES": null, "Seguimiento": "Según Sirdec, el 22-11-2024, el laboratoria de  genética del IMLCF Bogotá, recibió muestra bilógica para ser perfilada e ingresada al BPGD, la cual fue tomada por la UBPD en Neiva a Jaqueline Mejía Vásquez, esposa de José Diego Vargas Melecio, la cual fue remitida, un día después de su toma.", "Nuevos avances": null, "Plan de Trabajo": null, "Responsable": "Ana María Salamanca", "Plazo": null
+  }
+];
+
+// DATA CORRECTION: Ensure 'Dialogo inicial' is marked if 'Solicitud de búsqueda' is marked.
+data = data.map(row => {
+    if (row['Solicitud de búsqueda'] == 1 || row['Solicitud de búsqueda'] === 'x') {
+        row['Dialogo inicial'] = 1;
+    }
+    return row;
+});
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    // --- Data Processing ---
+    const totalCasos = data.length;
+    const servidoresUnicos = new Set(data.map(d => d['NOMBRES SERVIDOR/A BUSCADOR/A']));
+    const totalServidores = servidoresUnicos.size;
+    const tomasMuestra = data.filter(d => d['Toma de Muestra'] == 1 || d['Toma de Muestra'] === 'x').length;
+    const conProspeccion = data.filter(d => d['Prospección'] == 1 || d['Prospección'] === 'x').length;
+
+    // --- Update KPIs ---
+    document.getElementById('kpi-total-casos').textContent = totalCasos;
+    document.getElementById('kpi-total-servidores').textContent = totalServidores;
+    document.getElementById('kpi-tomas-muestra').textContent = tomasMuestra;
+    document.getElementById('kpi-prospeccion').textContent = conProspeccion;
+
+    // --- Prepare Chart Data ---
+    const getCounts = (key) => {
+        const counts = data.reduce((acc, curr) => {
+            let value = curr[key] ? String(curr[key]).trim() : 'No especificado';
+             if(key === 'Año') {
+                const yearMatch = String(value).match(/\d{4}/);
+                value = yearMatch ? yearMatch[0] : 'Sin Año';
+            }
+            acc[value] = (acc[value] || 0) + 1;
+            return acc;
+        }, {});
+        return Object.entries(counts).sort((a, b) => b[1] - a[1]);
+    };
+    
+    // Chart 1: Casos por Año
+    const anosData = getCounts('Año');
+    new Chart(document.getElementById('casosPorAnoChart'), {
+        type: 'bar',
+        data: {
+            labels: anosData.map(d => d[0]),
+            datasets: [{
+                label: 'N° de Casos',
+                data: anosData.map(d => d[1]),
+                backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                borderColor: 'rgba(52, 152, 219, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: { y: { beginAtZero: true } },
+            plugins: { legend: { display: false } }
+        }
+    });
+
+    // Chart 2: Casos por GITT
+    const gittData = getCounts('GITT RESPONSABLE');
+    new Chart(document.getElementById('casosPorGittChart'), {
+        type: 'doughnut',
+        data: {
+            labels: gittData.map(d => d[0]),
+            datasets: [{
+                data: gittData.map(d => d[1]),
+                backgroundColor: ['#3498db', '#e74c3c', '#2ecc71', '#f1c40f', '#9b59b6', '#34495e', '#1abc9c', '#e67e22'],
+            }]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'bottom' }}}
+    });
+
+    // Chart 3: Parentesco
+    const parentescoData = getCounts('PARENTESCO');
+    new Chart(document.getElementById('parentescoChart'), {
+        type: 'pie',
+        data: {
+            labels: parentescoData.map(d => d[0]),
+            datasets: [{
+                data: parentescoData.map(d => d[1]),
+                backgroundColor: ['#e74c3c', '#3498db', '#f1c40f', '#2ecc71', '#9b59b6', '#34495e', '#1abc9c', '#e67e22'],
+            }]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'bottom' }}}
+    });
+    
+    // Chart 4: Funnel
+    const funnelSteps = {
+        'Solicitud': data.filter(d => d['Solicitud de búsqueda'] == 1 || d['Solicitud de búsqueda'] === 'x').length,
+        'Diálogo Inicial': data.filter(d => d['Dialogo inicial'] == 1 || d['Dialogo inicial'] === 'x').length,
+        'Toma de Muestra': tomasMuestra,
+        'Localización': data.filter(d => d['Localicación'] == 1 || d['Localicación'] === 'x').length,
+        'Prospección': conProspeccion,
+        'En Identificación': data.filter(d => d['Identificación'] && d['Identificación'] != 0).length
+    };
+    new Chart(document.getElementById('funnelChart'), {
+        type: 'bar',
+        data: {
+            labels: Object.keys(funnelSteps),
+            datasets: [{
+                label: 'N° de Casos en Etapa',
+                data: Object.values(funnelSteps),
+                backgroundColor: ['#2980b9', '#3498db', '#5dade2', '#85c1e9', '#aed6f1', '#d6eaf8'],
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            scales: { x: { beginAtZero: true } },
+            plugins: { legend: { display: false } }
+        }
+    });
+
+     // Chart 5: Liderazgo
+    const liderazgoData = getCounts('LIDERA LA BÚSQUEDA');
+    new Chart(document.getElementById('liderazgoChart'), {
+        type: 'doughnut',
+        data: {
+            labels: liderazgoData.map(d => d[0] === 'Si' ? 'Liderada por Servidor/a' : 'Acompañada'),
+            datasets: [{
+                data: liderazgoData.map(d => d[1]),
+                backgroundColor: ['#2ecc71', '#f39c12'],
+            }]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'bottom' }}}
+    });
+
+    // --- Populate NEW Table (Servidores Directos) ---
+    const servidoresDirectosBody = document.getElementById('servidoresDirectosBody');
+    const servidoresDirectos = data.filter(row => row['Primer Grado de Consanguinidad'] === 'Si');
+    servidoresDirectos.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${row['NOMBRES SERVIDOR/A BUSCADOR/A']}</td>
+            <td>${row['GITT AL QUE PERTENECE EL SERVIRDOR/A'].replace(/\n/g, ', ')}</td>
+            <td class="highlight-parentesco">${row['PARENTESCO']}</td>
+            <td>${row['PDD']}</td>
+        `;
+        servidoresDirectosBody.appendChild(tr);
+    });
+
+    // --- Populate Main Table ---
+    const tableBody = document.getElementById('tableBody');
+    data.forEach((row, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${index + 1}</td>
+            <td>${row['PDD']}</td>
+            <td>${String(row['Año']).match(/\d{4}/) ? String(row['Año']).match(/\d{4}/)[0] : row['Año']}</td>
+            <td>${(row['GITT RESPONSABLE'] || 'N/A').replace(/\n/g, ', ')}</td>
+            <td>${row['NOMBRES SERVIDOR/A BUSCADOR/A']}</td>
+            <td><button class="btn-details" data-index="${index}">Ver Detalles</button></td>
+        `;
+        tableBody.appendChild(tr);
+    });
+
+    // --- Modal Logic ---
+    const modal = document.getElementById("detailsModal");
+    const closeBtn = document.getElementsByClassName("close-btn")[0];
+
+    document.querySelectorAll('.btn-details').forEach(button => {
+        button.addEventListener('click', function() {
+            const index = this.getAttribute('data-index');
+            const rowData = data[index];
+            
+            document.getElementById('modalTitle').textContent = `Detalle del Caso: ${rowData['PDD']}`;
+            document.getElementById('modalId').textContent = rowData['ID'];
+            document.getElementById('modalAno').textContent = rowData['Año'];
+            document.getElementById('modalLugar').textContent = rowData['Lugar Desaparición'];
+            document.getElementById('modalGitt').textContent = rowData['GITT RESPONSABLE'];
+            document.getElementById('modalServidorNombre').textContent = rowData['NOMBRES SERVIDOR/A BUSCADOR/A'];
+            document.getElementById('modalParentesco').textContent = rowData['PARENTESCO'];
+            document.getElementById('modalLidera').textContent = rowData['LIDERA LA BÚSQUEDA'];
+            document.getElementById('modalNota').textContent = rowData['Nota'] || 'Sin notas.';
+            document.getElementById('modalSeguimiento').innerHTML = (rowData['Seguimiento'] || 'Sin seguimiento.').replace(/\n/g, '<br>');
+            document.getElementById('modalPlan').textContent = rowData['Plan de Trabajo'] || 'No definido.';
+            document.getElementById('modalResponsable').textContent = rowData['Responsable'] || 'No asignado.';
+            document.getElementById('modalPlazo').textContent = rowData['Plazo'] || 'No definido.';
+
+            modal.style.display = "block";
+        });
+    });
+
+    closeBtn.onclick = function() {
+        modal.style.display = "none";
+    }
+
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
+});
+
+function filterTable() {
+    const input = document.getElementById("searchInput");
+    const filter = input.value.toUpperCase();
+    const table = document.getElementById("casosTable");
+    const tr = table.getElementsByTagName("tr");
+
+    for (let i = 1; i < tr.length; i++) {
+        const row = tr[i];
+        const cells = row.getElementsByTagName("td");
+        let found = false;
+        for (let j = 0; j < cells.length - 1; j++) { // Exclude the button column
+            const cell = cells[j];
+            if (cell) {
+                if (cell.innerHTML.toUpperCase().indexOf(filter) > -1) {
+                    found = true;
+                    break;
+                }
+            }
+        }
+        if (found) {
+            row.style.display = "";
+        } else {
+            row.style.display = "none";
+        }
+    }
+}
+</script>
+
+</body>
+</html>
+```
